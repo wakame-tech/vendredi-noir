@@ -1,11 +1,19 @@
 # Vendredi-Noir
 Gesture Interface + Multiplay Tetris
 
-## Tetris
+## Gesture UI
+
+## TetrisClient
+
+## TetrisServer
 `W:10 x H:10`
 
 ![block](https://livedoor.blogimg.jp/mkomiz/imgs/f/f/ff82b30d.gif)
 
+### Requirements
+- Python 3.7.5
+- Flask
+- Flask-SocketIO
 
 ### API schema
 ```json
@@ -30,3 +38,6 @@ Gesture Interface + Multiplay Tetris
   }
 }
 ```
+
+### 参考
+<https://github.com/miguelgrinberg/Flask-SocketIO/blob/master/example/app.py>
