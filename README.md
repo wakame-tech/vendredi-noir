@@ -6,7 +6,7 @@ Gesture Interface + Multiplay Tetris
 ## TetrisClient
 
 ## TetrisServer
-`W:10 x H:10`
+`W:10 x H:20`
 
 ![block](https://livedoor.blogimg.jp/mkomiz/imgs/f/f/ff82b30d.gif)
 
