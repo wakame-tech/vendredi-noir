@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+"""
+Created on Fri Nov 22 17:28:07 2019
+
+URL: https://github.com/wakame-tech/vendredi-noir/tree/master/src/gesture
+@author: n_toba
+@id: 4617054
+"""
 import sys, os
 from PyQt5.QtWidgets import(
     QGraphicsView, QApplication, QMainWindow, QGraphicsScene, QGraphicsPixmapItem
@@ -11,53 +20,56 @@ from PyQt5.QtGui import(
 import cv2
 
 
+
 class ObjDetector():
 
-    """ 物体検出器 """
-    def __init__(self, filename = None):
-        # カスケード分類器の初期化
-        self.cascade = cv2.CascadeClassifier()  # カスケード識別器のインスタンスを作成
-        if filename != None:
-            self.cascade.load(filename) # モデルファイルを読み込み
 
-    def load(self, filename):
-        self.cascade.load(filename)
+    def __init__(self, fname: str=None):
+
+        # initializing cascade classifier
+        self.cascade = cv2.CascadeClassifier()  # generating instance of cascade classifier
+        
+        # loading model file
+        if fname is None:
+            raise IOError(f'filename must not be None')
+
+        self.cascade.load(fname)
         if self.cascade.empty():
-            raise IOError("error in loading cascade file \"" + filename + "\"")
+            raise IOError(f'error in loading cascade file "{fname}"')
+
 
     def detect(self, im):
-        """ 物体検出処理 """
+
+        # objects detector processor
         if self.cascade.empty():
             return []
 
-        scalefactor = 1.1
-        minneighbors = 3
-        objects = self.cascade.detectMultiScale(im, scaleFactor=scalefactor, minNeighbors=minneighbors)
-
-        #count = len(objects)
-        #print('detection count: %s' % (count,))
+        scaleFactor  = 1.1
+        minNeighbors = 3
+        objects = self.cascade.detectMultiScale(im, scaleFactor=scaleFactor, minNeighbors=minNeighbors)
 
         return objects
 
 
+
 class VideoCaptureView(QGraphicsView):
-    """ ビデオキャプチャ """
-    repeat_interval = 200 # ms 間隔で画像更新
+
+    # updating image per ms
+    repeat_interval = 20    # 20 ms = (50 Hz)**-1
 
     def __init__(self, parent = None):
-        """ コンストラクタ（インスタンスが生成される時に呼び出される） """
+
         super(VideoCaptureView, self).__init__(parent)
 
-        # 変数を初期化
-        self.pixmap = None
-        self.item = None
+        self.pixmap     = None
+        self.item       = None
         self.rect_items = []
 
-        # VideoCapture (カメラからの画像取り込み)を初期化
+        # initializing video capture from front camera
         self.capture = cv2.VideoCapture(0)
 
-        if self.capture.isOpened() is False:
-            raise IOError("failed in opening VideoCapture")
+        if not self.capture.isOpened():
+            raise IOError('failed in opening VideoCapture')
 
         # 描画キャンバスの初期化
         self.scene = QGraphicsScene()
@@ -108,12 +120,21 @@ class VideoCaptureView(QGraphicsView):
             self.rect_items.append(self.scene.addRect(x, y, w, h, self.pen, self.brush))
 
 
+
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
     app.aboutToQuit.connect(app.deleteLater)
 
-    #detector = ObjDetector("models/lbpcascades/lbpcascade_frontalface.xml")
-    detector = ObjDetector("models/haarcascades/haarcascade_frontalface_default.xml")
+    model_fname = 'models/haarcascades/haarcascade_frontalface_default.xml'
+    model_fname = 'models/haarcascade2/aGest.xml'
+    'aGest.xml'
+    'closed_frontal_palm.xml'
+    'fist.xml'
+    'haarcascade_eye_tree_eyeglasses.xml'
+    'haarcascade_frontalface_alt2.xml'
+    'palm.xml'
+    detector = ObjDetector(model_fname) 
 
     main = QMainWindow()              # メインウィンドウmainを作成
     main.setWindowTitle("Face Detector")
@@ -124,3 +145,4 @@ if __name__ == '__main__':
     app.exec_()
 
     viewer.capture.release()
+
