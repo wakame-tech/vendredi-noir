@@ -71,12 +71,11 @@ class VideoCaptureView(QGraphicsView):
         if not self.capture.isOpened():
             raise IOError('failed in opening VideoCapture')
 
-        # 描画キャンバスの初期化
+        # initializing canvas
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
-        self.pen = QPen(QColor(0xff, 0x00, 0x00))     # ペンを作成 (RGB)
-        self.pen.setWidth(3)                          # ペンの太さを設定
-        #self.brush = QBrush(QColor(0xff, 0xff, 0xff), Qt.SolidPattern)    #ブラシを作成
+        self.pen = QPen(QColor(0xff, 0x00, 0x00))     # generating pen (RGB)
+        self.pen.setWidth(3)                          # pen's width
         self.brush = QBrush()
 
         self.setVideoImage()
@@ -86,21 +85,21 @@ class VideoCaptureView(QGraphicsView):
         self.timer.timeout.connect(self.setVideoImage)
         self.timer.start(self.repeat_interval)
 
-    def setVideoImage(self):
+
+    def setVideoImage(self) -> None:
         """ ビデオの画像を取得して表示 """
         ret, cv_img = self.capture.read()                # ビデオキャプチャデバイスから画像を取得
         if ret is False:
             return
 
         cv_img = cv2.cvtColor(cv_img,cv2.COLOR_BGR2RGB)  # 色変換 BGR->RGB
+        cv_img = cv2.flip(cv_img, 1)
         height, width, dim = cv_img.shape
         bytesPerLine = dim * width                       # 1行辺りのバイト数
 
-        # 物体検出を実行
-        # <--- ここに追加
-
-
+        # detecting objects
         self.image = QImage(cv_img.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        # first 
         if self.pixmap is None:                          # 初回はQPixmap, QGraphicsPixmapItemインスタンスを作成
             self.pixmap = QPixmap.fromImage(self.image)
             self.item = QGraphicsPixmapItem(self.pixmap)
@@ -116,8 +115,10 @@ class VideoCaptureView(QGraphicsView):
             self.scene.removeItem(item)
         # 新しい矩形を描画
         self.rect_items = []
-        for (x, y, w, h) in rects:
-            self.rect_items.append(self.scene.addRect(x, y, w, h, self.pen, self.brush))
+
+        print(rects)
+        for xywh in rects:
+            self.rect_items.append(self.scene.addRect(*xywh, self.pen, self.brush))
 
 
 
@@ -127,13 +128,15 @@ if __name__ == '__main__':
     app.aboutToQuit.connect(app.deleteLater)
 
     model_fname = 'models/haarcascades/haarcascade_frontalface_default.xml'
-    model_fname = 'models/haarcascade2/aGest.xml'
-    'aGest.xml'
-    'closed_frontal_palm.xml'
-    'fist.xml'
-    'haarcascade_eye_tree_eyeglasses.xml'
-    'haarcascade_frontalface_alt2.xml'
-    'palm.xml'
+    xml = [
+        'aGest.xml',
+        'closed_frontal_palm.xml',
+        'fist.xml',
+        'haarcascade_eye_tree_eyeglasses.xml',
+        'haarcascade_frontalface_alt2.xml',
+        'palm.xml'
+    ][0]
+    model_fname = f'haargesture/{xml}'
     detector = ObjDetector(model_fname) 
 
     main = QMainWindow()              # メインウィンドウmainを作成
