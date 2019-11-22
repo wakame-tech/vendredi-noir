@@ -1,8 +1,15 @@
 import sys, os
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import(
+    QGraphicsView, QApplication, QMainWindow, QGraphicsScene, QGraphicsPixmapItem
+)
+from PyQt5.QtCore import(
+    QTimer
+)
+from PyQt5.QtGui import(
+    QPen, QColor, QBrush, QImage, QPixmap
+)
 import cv2
+
 
 class ObjDetector():
 
@@ -82,7 +89,7 @@ class VideoCaptureView(QGraphicsView):
 
 
         self.image = QImage(cv_img.data, width, height, bytesPerLine, QImage.Format_RGB888)
-        if self.pixmap is None:                          # 初回はQPixmap, QGraphicPixmapItemインスタンスを作成
+        if self.pixmap is None:                          # 初回はQPixmap, QGraphicsPixmapItemインスタンスを作成
             self.pixmap = QPixmap.fromImage(self.image)
             self.item = QGraphicsPixmapItem(self.pixmap)
             self.scene.addItem(self.item)                # キャンバスに配置
