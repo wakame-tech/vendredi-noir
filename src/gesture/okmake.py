@@ -55,7 +55,8 @@ class ObjDetector():
 class VideoCaptureView(QGraphicsView):
 
     # updating image per ms
-    repeat_interval = 20    # 20 ms = (50 Hz)**-1
+    repeat_interval = 5    # 20 ms = (50 Hz)**-1
+    num = 10
 
     def __init__(self, parent = None):
 
@@ -92,8 +93,10 @@ class VideoCaptureView(QGraphicsView):
         if ret is False:
             return
 
+        cv2.imwrite(f'fin{self.num}.png', cv_img)
         cv_img = cv2.cvtColor(cv_img,cv2.COLOR_BGR2RGB)  # 色変換 BGR->RGB
         cv_img = cv2.flip(cv_img, 1)
+        self.num += 1
         height, width, dim = cv_img.shape
         bytesPerLine = dim * width                       # 1行辺りのバイト数
 
@@ -113,7 +116,6 @@ class VideoCaptureView(QGraphicsView):
         # 直前に描画した矩形を削除
         for item in self.rect_items:
             self.scene.removeItem(item)
-        # 新しい矩形を描画
         self.rect_items = []
 
         print(rects)
