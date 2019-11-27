@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
-@author: Viet Nguyen <nhviet1009@gmail.com>
+Created on Fri Nov 22 17:28:07 2019
+
+URL: https://github.com/wakame-tech/vendredi-noir/tree/master/src/gesture
+@author: n_toba
+@id: 4617054
 """
 import tensorflow.compat.v1 as tf
 import cv2
@@ -23,14 +29,14 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FLAGS.height)
     mp = _mp.get_context('spawn')
     v = mp.Value('i', 0)
-    lock = mp.Lock()
-    process = mp.Process(target=dinosaur, args=(v, lock))
-    process.start()
+    #lock = mp.Lock()
+    #process = mp.Process(target=dinosaur, args=(v, lock))
+    #process.start()
     while True:
         key = cv2.waitKey(10)
         if key == ord('q'):
             break
-        _, frame = cap.read()
+        frame = cap.read()[1]
         frame = cv2.flip(frame, 1)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         boxes, scores, classes = detect_hands(frame, graph, sess)
@@ -39,8 +45,8 @@ def main():
 
         if len(results) == 1:
             x_min, x_max, y_min, y_max, category = results[0]
-            x = int((x_min + x_max) / 2)
-            y = int((y_min + y_max) / 2)
+            x = (x_min + x_max) // 2
+            y = (y_min + y_max) // 2
             cv2.circle(frame, (x, y), 5, RED, -1)
             if category == 'Closed':
                 action = 0  # Do nothing
@@ -55,8 +61,9 @@ def main():
                 action = 0
                 text = 'Run'
 
-            with lock:
-                v.value = action
+            #with lock:
+            #    v.value = action
+            print(results)
             cv2.putText(frame, '{}'.format(text), (x_min, y_min - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
 
