@@ -10,6 +10,11 @@ git clone https://github.com/wakame-tech/vendredi-noir.git
 ## TetrisClient
 
 ## TetrisServer
+### deploy to heroku
+```
+git subtree push --prefix src/server/ heroku master
+```
+
 `W:10 x H:20`
 
 ![block](https://livedoor.blogimg.jp/mkomiz/imgs/f/f/ff82b30d.gif)
