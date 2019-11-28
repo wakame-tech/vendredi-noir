@@ -13,9 +13,9 @@ import pyautogui
 import numpy as np
 
 
-GREEN   = (0x00, 0xff, 0x00)
-RED     = (0x00, 0x00, 0xff)
-YELLOW  = (0x00, 0xff, 0xff)
+GREEN  = (0x00, 0xff, 0x00)
+RED    = (0x00, 0x00, 0xff)
+YELLOW = (0x00, 0xff, 0xff)
 
 
 class SYSTEM(object):
@@ -32,8 +32,20 @@ class SYSTEM(object):
         model_path = 'model.pb'
         self.load_graph(model_path)
 
+        self.capture()
 
-    def load_graph(self, path):
+
+    def capture(self) -> None:
+
+        FLAGS = self.FLAGS
+
+        cap = cv2.VideoCapture(0)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, FLAGS.width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FLAGS.height)
+        self.cap = cap
+
+
+    def load_graph(self, path) -> None:
         detection_graph = tf.Graph()
         with detection_graph.as_default():
             graph_def = tf.GraphDef()
@@ -45,7 +57,7 @@ class SYSTEM(object):
         self.graph = detection_graph
 
 
-    def detect_hands(self, image):
+    def detect_hands(self, image) -> None:
 
         graph, sess = self.graph, self.sess
 
@@ -58,7 +70,7 @@ class SYSTEM(object):
         return np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes)
 
 
-    def predict(self, boxes, scores, classes, num_hands=2):
+    def predict(self, boxes, scores, classes, num_hands=2) -> list:
 
         FLAGS = self.FLAGS
         result_li = []
@@ -73,41 +85,57 @@ class SYSTEM(object):
         return result_li
 
 
-    def main(self):
+    def display(self, frame, x, y, text) -> None:
 
         FLAGS = self.FLAGS
 
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, FLAGS.width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FLAGS.height)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        cv2.circle(frame, (x, y), 5, RED, -1)
+        cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
 
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, 0), (FLAGS.width, FLAGS.height // 2), YELLOW, -1)
+        cv2.addWeighted(overlay, FLAGS.alpha, frame, 1 - FLAGS.alpha, 0, frame)
+        cv2.imshow('Detection', frame)
+
+
+    def main(self, display_mode: bool=False):
+
+        _x = _y = 0
+        eps = 1
         while cv2.waitKey(10) != ord('q'):
 
-            frame = cap.read()[1]
+            frame = self.cap.read()[1]
             frame = cv2.flip(frame, 1)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             boxes, scores, classes = self.detect_hands(frame)
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             results = self.predict(boxes, scores, classes)
 
             if len(results) == 1:
                 x, y, category = results[0]
-                text = 'Move' if category == 2 else 'Rotate'
+                # category is Closed hand
+                if category == 2:
+                    text = 'Rotate'
+                elif abs(x-_x) < eps and abs(y-_y) < eps:
+                    text = 'Stay'
+                elif abs(x-_x) < abs(y-_y):
+                    text = 'Down'
+                elif x > _x: # abs(x-_x) >= abs(y-_y)
+                    text = 'Right'
+                else: # x < _x
+                    text = 'Left'
+
+                _x, _y = x, y
 
             else:
-                x, y = 200, 200
-                text = 'Move'
+                x, y = _x, _y
+                text = 'Stay'
 
-            print(results)
-            cv2.circle(frame, (x, y), 5, RED, -1)
-            cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
+            pyautogui.press(list(text))
+            if display_mode:
+                self.display(frame, x, y, text)
 
-            overlay = frame.copy()
-            cv2.rectangle(overlay, (0, 0), (FLAGS.width, FLAGS.height // 2), YELLOW, -1)
-            cv2.addWeighted(overlay, FLAGS.alpha, frame, 1 - FLAGS.alpha, 0, frame)
-            cv2.imshow('Detection', frame)
-
-        cap.release()
+        self.cap.release()
         cv2.destroyAllWindows()
 
 
@@ -115,4 +143,4 @@ class SYSTEM(object):
 if __name__ == '__main__':
 
     sy = SYSTEM()
-    sy.main()
+    sy.main(True)
