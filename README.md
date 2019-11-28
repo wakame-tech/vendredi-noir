@@ -8,18 +8,12 @@ git clone https://github.com/wakame-tech/vendredi-noir.git
 ## Gesture UI
 
 ## TetrisClient
-
-## TetrisServer
-### deploy to heroku
-```
-git subtree push --prefix src/server/ heroku master
-```
-
 `W:10 x H:20`
 
 ![block](https://livedoor.blogimg.jp/mkomiz/imgs/f/f/ff82b30d.gif)
 
-### Requirements
+## TetrisServer
+### skill stacks
 - Python 3.7.5
 - Flask
 - Flask-SocketIO
@@ -45,5 +39,11 @@ schema from server
 }
 ```
 
-### 参考
-<https://github.com/miguelgrinberg/Flask-SocketIO/blob/master/example/app.py>
+### deploy to heroku
+```
+git subtree push --prefix src/server/ heroku master
+```
+
+### ref
+- <https://devcenter.heroku.com/articles/python-websockets>
+- <https://github.com/miguelgrinberg/Flask-SocketIO/blob/master/example/app.py>

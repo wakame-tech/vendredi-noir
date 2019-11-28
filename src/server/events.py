@@ -6,6 +6,7 @@ from logger import logger
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode=None, cors_allowed_origins='*')
 
+
 @app.route('/')
 def index():
     return "Server is Running"

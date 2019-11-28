@@ -131,7 +131,7 @@ def on_board(res):
     print(prettify_board(res))
 
 ENDPOINT = 'https://vendredi-noir.herokuapp.com'
-# ENDPOINT = 'http://localhost:8000'
+# ENDPOINT = 'http://localhost:5000'
 
 if __name__ == '__main__':
     sio.connect(ENDPOINT)
