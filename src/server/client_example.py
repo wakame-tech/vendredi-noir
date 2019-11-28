@@ -2,8 +2,8 @@ import sys
 import time
 from client import api, connect, create_room, join_room, game_start, game_end, move
 
-ENDPOINT = 'https://vendredi-noir.herokuapp.com'
-# ENDPOINT = 'http://localhost:5000'
+# ENDPOINT = 'https://vendredi-noir.herokuapp.com'
+ENDPOINT = 'http://localhost:5000'
 
 def mock():
     """

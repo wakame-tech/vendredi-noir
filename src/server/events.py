@@ -4,7 +4,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, ro
 from logger import logger
 
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode=None, cors_allowed_origins='*')
+socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins='*')
 
 
 @app.route('/')
