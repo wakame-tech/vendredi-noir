@@ -15,11 +15,38 @@ class TetrisAlg(object):
     def board_init(self):
 
         self.board = np.zeros([self.height, self.width], dtype=np.int)
+        self.generate_block()
 
 
     def update(self):
 
-        self.point_y += 1
+        self.point[0] += 1
+        # めり込み評価
+        ix_li = self.ix_li + self.point
+        for ix in ix_li:
+            if ix[1] >= self.width:
+                self.point[1] -= 1
+                break
+            elif ix[1] < 0:
+                self.point[1] += 1
+                break
+            elif ix[0] >= self.height-1 or np.any(self.board[ix[0], ix[1]] != 0):
+                try:
+                    shift = 1 if np.any(self.board[ix[0], ix[1]] != 0) else 0
+                except:
+                    shift = 0
+                for ix in ix_li:
+                    self.board[ix[0]-shift, ix[1]] = self.block_type
+
+                self.generate_block()
+                break
+
+        # 消す評価
+        for h in range(self.height):
+            if np.all(self.board[h] != 0):
+                self.board[h] = 0
+                for _h in reversed(range(h)):
+                    self.board[_h+1] = self.board[_h]
 
         return
 
@@ -28,7 +55,6 @@ class TetrisAlg(object):
 
         from time import sleep
 
-        self.generate_block()
         while self.is_cont():
             if display_mode:
                 self.display()
@@ -139,12 +165,12 @@ class TetrisAlg(object):
 
     def move(self, to: str='r') -> None:
 
-        if   to == 'r':     # rigth
-            self.point_x += 1
-        elif to == 'l':     # left
-            self.point_x -= 1
+        if   to == 'l':     # right
+            self.point[1] += 1
+        elif to == 'h':     # left
+            self.point[1] -= 1
         elif to == ' ':
-            self.move()
+            self.rotate()
 
         return
 
@@ -156,11 +182,18 @@ class TetrisAlg(object):
 
     def display(self) -> None:
 
+        ix_li = self.ix_li + self.point
         for h in range(self.height):
             print('{:>2}|'.format(h), end='')
             for w in range(self.width):
-                part = self.board[h, w]
-                print(f'{part}' if part != 0 else ' ', end='')
+
+                for ix in ix_li:
+                    if h == ix[0] and w == ix[1]:
+                        print(f'{self.block_type}', end='')
+                        break
+                else:
+                    part = self.board[h, w]
+                    print(f'{part}' if part != 0 else ' ', end='')
 
             print()
 
