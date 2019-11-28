@@ -18,7 +18,7 @@ RED    = (0x00, 0x00, 0xff)
 YELLOW = (0x00, 0xff, 0xff)
 
 
-class SYSTEM(object):
+class Gesture(object):
 
 
     def __init__(self):
@@ -31,8 +31,25 @@ class SYSTEM(object):
 
         model_path = 'model.pb'
         self.load_graph(model_path)
-
         self.capture()
+
+
+    def load_graph(self, path: str) -> None:
+
+        detection_graph = tf.Graph()
+
+        with detection_graph.as_default():
+            graph_def = tf.GraphDef()
+
+            with tf.gfile.GFile(path, 'rb') as fid:
+                graph_def.ParseFromString(fid.read())
+                tf.import_graph_def(graph_def, name='')
+
+            self.sess = tf.Session(graph=detection_graph)
+
+        self.graph = detection_graph
+
+        return
 
 
     def capture(self) -> None:
@@ -44,20 +61,10 @@ class SYSTEM(object):
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FLAGS.height)
         self.cap = cap
 
-
-    def load_graph(self, path) -> None:
-        detection_graph = tf.Graph()
-        with detection_graph.as_default():
-            graph_def = tf.GraphDef()
-            with tf.gfile.GFile(path, 'rb') as fid:
-                graph_def.ParseFromString(fid.read())
-                tf.import_graph_def(graph_def, name='')
-            self.sess = tf.Session(graph=detection_graph)
-
-        self.graph = detection_graph
+        return
 
 
-    def detect_hands(self, image) -> None:
+    def detect_hands(self, image: np.ndarray) -> None:
 
         graph, sess = self.graph, self.sess
 
@@ -67,10 +74,11 @@ class SYSTEM(object):
         detection_classes = graph.get_tensor_by_name('detection_classes:0')
         image = image[None]
         boxes, scores, classes = sess.run([detection_boxes, detection_scores, detection_classes], feed_dict={input_image: image})
+
         return np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes)
 
 
-    def predict(self, boxes, scores, classes, num_hands=2) -> list:
+    def predict(self, boxes: np.ndarray, scores: np.ndarray, classes: np.ndarray, num_hands: int=2) -> list:
 
         FLAGS = self.FLAGS
         result_li = []
@@ -85,7 +93,7 @@ class SYSTEM(object):
         return result_li
 
 
-    def display(self, frame, x, y, text) -> None:
+    def display(self, frame: np.ndarray, x: int, y: int, text: str) -> None:
 
         FLAGS = self.FLAGS
 
@@ -98,11 +106,14 @@ class SYSTEM(object):
         cv2.addWeighted(overlay, FLAGS.alpha, frame, 1 - FLAGS.alpha, 0, frame)
         cv2.imshow('Detection', frame)
 
+        return
 
-    def main(self, display_mode: bool=False):
+
+    def main(self, display_mode: bool=False) -> None:
 
         _x = _y = 0
-        eps = 1
+        eps      = 1
+        eps_down = 5
         while cv2.waitKey(10) != ord('q'):
 
             frame = self.cap.read()[1]
@@ -113,27 +124,32 @@ class SYSTEM(object):
 
             if len(results) == 1:
                 x, y, category = results[0]
-                # category is Closed hand
+                # category 2 is Closed hand
                 if category == 2:
-                    text = 'Rotate'
-                elif abs(x-_x) < eps and abs(y-_y) < eps:
-                    text = 'Stay'
+                    text = 'R'
+                elif abs(x-_x) < eps and abs(y-_y) < eps_down:
+                    text = '.'
                 elif abs(x-_x) < abs(y-_y):
-                    text = 'Down'
+                    text = 'v'
                 elif x > _x: # abs(x-_x) >= abs(y-_y)
-                    text = 'Right'
+                    text = '>'
                 else: # x < _x
-                    text = 'Left'
+                    text = '<'
 
                 _x, _y = x, y
 
             else:
                 x, y = _x, _y
-                text = 'Stay'
+                text = '.'
 
-            pyautogui.press(list(text))
+            pyautogui.press(text)
             if display_mode:
                 self.display(frame, x, y, text)
+
+        return
+
+
+    def __del__(self):
 
         self.cap.release()
         cv2.destroyAllWindows()
@@ -142,5 +158,6 @@ class SYSTEM(object):
 
 if __name__ == '__main__':
 
-    sy = SYSTEM()
-    sy.main(True)
+    g = Gesture()
+    g.main()
+
