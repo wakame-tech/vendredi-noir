@@ -7,14 +7,19 @@ app = Flask(__name__)
 socketio = SocketIO(app, async_mode=None, cors_allowed_origins='*')
 thread_lock = Lock()
 
+
 @app.route('/')
 def index():
     return "Server is Running"
 
+
 def room_of(sid):
     """return sid belonging room
     """
-    return [r for r in rooms(sid) if r != sid][0]
+    for r in rooms(sid):
+        if r != sid:
+            return r
+    return '<Not Found>'
 
 
 @socketio.on('connect')
@@ -30,7 +35,7 @@ def on_connect():
 
 @socketio.on('request_create_room')
 def on_create_room(req):
-    room_name = req["room_name"]
+    room_name = req['room_name']
     join_room(room_name)
     logger.info('create room %s' % room_of(request.sid))
     emit('response_create_room', {'room_name': room_name}, room=room_name)
@@ -38,7 +43,7 @@ def on_create_room(req):
 
 @socketio.on('request_join_room')
 def on_join_room(req):
-    room_name = req["room_name"]
+    room_name = req['room_name']
     join_room(room_name)
     logger.info('join %s to %s' % (request.sid, room_of(request.sid)))
     emit('response_join_room', {'room_name': room_name}, room=room_name)

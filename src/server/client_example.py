@@ -2,8 +2,10 @@ import sys
 import time
 from client import api, connect, create_room, join_room, game_start, game_end, move
 
-# ENDPOINT = 'https://vendredi-noir.herokuapp.com'
-ENDPOINT = 'http://localhost:5000'
+ENDPOINT = 'https://vendredi-noir.herokuapp.com'
+# ENDPOINT = 'http://localhost:5000'
+
+global started
 
 def mock():
     """
@@ -80,6 +82,8 @@ def update(res):
 @api('game_started')
 def game_started(res):
     print('game started')
+    global started
+    started = True
 
 
 @api('game_ended')
@@ -91,27 +95,36 @@ def game_ended(res):
 """
 Usage:
 # as host
-python client_eexample.py
+python client_example.py
 # as member
-python client_eexample.py --join
+python client_example.py --join
 """
 if __name__ == '__main__':
     connect(ENDPOINT)
+    global started
+    started = False
     room_name = 'AAA'
+    is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
 
-    if len(sys.argv) >= 2 and sys.argv[1] == '--join':
-        join_room(room_name)
-    else:
+    if is_host:
         create_room(room_name)
+    else:
+        join_room(room_name)
 
-    print('waiting 10s ...')
-    time.sleep(10)
+    if is_host:
+        print('matching 10s ...')
+        time.sleep(10)
 
-    game_start(room_name)
+        game_start(room_name)
+    else:
+        while not started:
+            print('waiting start ... %s' % started)
+            time.sleep(1)
 
     i = 5
     while i > 0:
         i -= 1
         move(input())
 
-    game_end(room_name)
+    if is_host:
+        game_end(room_name)
