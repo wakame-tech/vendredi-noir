@@ -130,9 +130,10 @@ def on_board(res):
     """
     print(prettify_board(res))
 
+ENDPOINT = 'https://vendredi-noir.herokuapp.com:8000' # 'http://localhost:8000'
 
 if __name__ == '__main__':
-    sio.connect('http://localhost:8000')
+    sio.connect(ENDPOINT)
 
     room_name = 'AAA'
 
