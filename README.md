@@ -1,6 +1,10 @@
 # Vendredi-Noir
 Gesture Interface + Multiplay Tetris
 
+```bash
+git clone https://github.com/wakame-tech/vendredi-noir.git
+```
+
 ## Gesture UI
 
 ## TetrisClient
@@ -16,26 +20,23 @@ Gesture Interface + Multiplay Tetris
 - Flask-SocketIO
 
 ### API schema
+schema from server
+
 ```json
 {
-  "player1": {
-    "score": "120",
-    "falling": {
-      "type": "O",
-      "pos": [3, 5]
-    },
-    "next": "J",
-    "board": [
-      [0, 0, 0, ...],
-      [0, 0, 0, ...],
-      ...
-      [0, 1, 2, ...],
-    ],
-    "isDead": false
+  "score": "120",
+  "falling": {
+    "type": "O",
+    "pos": [3, 5]
   },
-  "player2": {
+  "next": "J",
+  "board": [
+    [0, 0, 0, ...],
+    [0, 0, 0, ...],
     ...
-  }
+    [0, 1, 2, ...],
+  ],
+  "isDead": false
 }
 ```
 
