@@ -44,6 +44,9 @@ schema from server
 git subtree push --prefix src/server/ heroku master
 ```
 
+deployed at [here](https://dashboard.heroku.com/apps/vendredi-noir) 🎉🎉🎉
+
+
 ### ref
 - <https://devcenter.heroku.com/articles/python-websockets>
 - <https://github.com/miguelgrinberg/Flask-SocketIO/blob/master/example/app.py>
