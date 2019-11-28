@@ -138,4 +138,5 @@ def on_move(req):
 
 @socketio.on('disconnect')
 def on_disconnect():
-    logger.info('Client disconnected', request.sid)
+    pass
+    # logger.info('Client disconnected', request.sid)

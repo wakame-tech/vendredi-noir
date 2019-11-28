@@ -57,19 +57,19 @@ def prettify_board(res):
 
 @sio.event
 def connect():
-    print('connected')
+    print('[Connected]')
 
 
 @sio.event
 def disconnect():
-    print("disconnected")
+    print("[Disconnected]")
     sys.exit(1)
 
 
 def create_room(room_name):
     """
     """
-    print('create room')
+    print('[Create] %s' % room_name)
     sio.emit('request_create_room', {"room_name": room_name})
 
 
@@ -83,6 +83,7 @@ def on_create_room(res):
 def join_room(room_name):
     """
     """
+    print('[Join] to %s' %  room_name)
     sio.emit('request_join_room', {"room_name": room_name})
 
 
@@ -94,7 +95,7 @@ def on_join_room(res):
 def game_start(room_name):
     """
     """
-    print('game start')
+    print('[Game Start]')
     sio.emit('request_game_start', {"room_name": room_name})
 
 
@@ -130,8 +131,8 @@ def on_board(res):
     """
     print(prettify_board(res))
 
-ENDPOINT = 'https://vendredi-noir.herokuapp.com'
-# ENDPOINT = 'http://localhost:5000'
+# ENDPOINT = 'https://vendredi-noir.herokuapp.com'
+ENDPOINT = 'http://localhost:5000'
 
 if __name__ == '__main__':
     sio.connect(ENDPOINT)
