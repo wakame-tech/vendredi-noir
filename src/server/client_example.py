@@ -42,9 +42,10 @@ def mock():
 
 
 def prettify_board(res):
-    t, pos = res['falling']['type'], res['falling']['pos']
-    # return '%s (%s, %s)\n%s' % (t, pos[0], pos[1], '\n'.join(res['board']))
-    return '%s (%s, %s)' % (t, pos[0], pos[1])
+    return res
+    # t, pos = res['falling']['type'], res['falling']['pos']
+    # # return '%s (%s, %s)\n%s' % (t, pos[0], pos[1], '\n'.join(res['board']))
+    # return '%s (%s, %s)' % (t, pos[0], pos[1])
 
 
 """
