@@ -1,260 +1,182 @@
 import numpy as np
 
 
-class TetrisAlg(object):
-
-    def __init__(self, ):
-
-        self.width = 10
-        self.height = 20
-
-        self.board_init()
-        self.generate_block()
+class T(object):
 
 
-    def board_init(self):
+    def __init__(self):
 
-        self.board = np.zeros([self.height, self.width], dtype=np.int)
-        self.generate_block()
+        self.board_size = [20, 10]
+        self.init_t4mino()
+        self.init_cur_li()
+        self.init_board()
+        self.gen_t4mino()
 
 
-    def update(self):
+    def init_t4mino(self) -> None:
+        
+        self.t4mino_li = [
+            # i
+            [[[1, i] for i in range(4)],
+             [[i, 1] for i in range(4)]] * 2,
+            # o
+            [[[0, 0], [0, 1], [1, 0], [1, 1]]] * 4,
+            # t
+            [[[0, 1]] + [[1, i] for i in range(3)],
+             [[1, 2]] + [[i, 1] for i in range(3)],
+             [[2, 1]] + [[1, i] for i in range(3)],
+             [[1, 0]] + [[i, 1] for i in range(3)]],
+            # j
+            [[[0, 0]] + [[1, i] for i in range(3)],
+             [[0, 2]] + [[i, 1] for i in range(3)],
+             [[2, 2]] + [[1, i] for i in range(3)],
+             [[2, 0]] + [[i, 1] for i in range(3)]],
+            # l
+            [[[0, 2]] + [[1, i] for i in range(3)],
+             [[2, 2]] + [[i, 1] for i in range(3)],
+             [[2, 0]] + [[1, i] for i in range(3)],
+             [[0, 0]] + [[i, 1] for i in range(3)]],
+            # s
+            [[[0, 1], [0, 2], [1, 0], [1, 1]],
+             [[0, 0], [1, 0], [1, 1], [2, 1]]] * 2,
+            # t
+            [[[0, 0], [0, 1], [1, 1], [1, 2]],
+             [[0, 1], [1, 0], [1, 1], [2, 0]]] * 2
+        ]
 
-        is_generatable = False
-        point = self.point
-        point[0] += 1
-        # 左右めり込み評価
-        ix_li = self.ix_li + point
-        min_ix1 = np.min(ix_li[:, 1])
-        max_ix1 = np.max(ix_li[:, 1])
-        if min_ix1 < 0:
-            point[1] += 1
-        elif max_ix1 >= self.width:
-            point[1] -= 1
+        return
 
-        # 下めり込み評価
-        max_ix0 = np.max(ix_li[:, 0])
-        if max_ix0 >= self.height:
-            point[0] -= 1
-            is_generatable = True
+    def init_cur_li(self) -> None:
 
-        # 他ブロックめり込み評価
-
-        # 消す評価
-        for h in range(self.height):
-            if np.all(self.board[h] != 0):
-                self.board[h] = 0
-                for _h in reversed(range(h)):
-                    self.board[_h+1] = self.board[_h]
-
-        # ブロック生成
-        if is_generatable:
-            self.store_board()
-            self.generate_block()
+        self.cur_li = [np.random.randint(7) for _ in range(4)]
 
         return
 
 
-    def store_board(self):
+    def update_cur_li(self) -> None:
 
-        for ix in self.ix_li + self.point:
-            self.board.__setitem__(tuple(ix), self.block_type)
+        self.cur_li.pop(0)
+
+        return
 
 
-    def game(self, display_mode=False):
+    def init_board(self) -> None:
 
-        from time import sleep
+        self.board = np.zeros(self.board_size, dtype=np.int)
 
-        while self.is_cont():
-            if display_mode:
-                self.display()
+        return
 
+
+    def game(self) -> None:
+
+        while True:
+
+            self.display()
+            _pt = self.pt.copy()
             self.move(input())
-            self.update()
-
-
-    def rotate(self) -> None:
-
-        rot = self.rotation
-        # =========================
-        #  x  |      |  x   |
-        #  x  |      |  x   | xxxx
-        #  x  | xxxx |  x   |
-        #  x  |      |  x   |
-        # =========================
-        if self.block_type == 1:
-            if   rot == 0:
-                ix_li = [[0, 2], [1, 2], [2, 2], [3, 2]]
-            elif rot == 1:
-                ix_li = [[2, 0], [2, 1], [2, 2], [2, 3]]
-            elif rot == 2:
-                ix_li = [[0, 1], [1, 1], [2, 1], [3, 1]]
-            elif rot == 3:
-                ix_li = [[1, 0], [1, 1], [1, 2], [1, 3]]
-        # =========================
-        # xx
-        # xx
-        #
-        #
-        # =========================
-        elif self.block_type == 2:
-            ix_li = [[0, 0], [0, 1], [1, 0], [1, 1]]
-        # =========================
-        #  x   |  x   |      |  x
-        # xxx  |  xx  | xxx  | xx
-        #      |  x   |  x   |  x
-        #      |      |      |
-        # =========================
-        elif self.block_type == 3:
-            if   rot == 0:
-                ix_li = [[0, 1], [2, 1], [1, 1], [1, 2]]
-            elif rot == 1:
-                ix_li = [[1, 0], [2, 1], [1, 1], [1, 2]]
-            elif rot == 2:
-                ix_li = [[1, 0], [2, 1], [1, 1], [0, 1]]
-            elif rot == 3:
-                ix_li = [[0, 1], [1, 0], [1, 1], [1, 2]]
-        # =========================
-        # xx   | xxx  |  x   | x
-        # x    |   x  |  x   | xxx
-        # x    |      | xx   |
-        #      |      |      |
-        # =========================
-        elif self.block_type == 4:
-            if   rot == 0:
-                ix_li = [[0, 0], [0, 1], [1, 0], [2, 0]]
-            elif rot == 1:
-                ix_li = [[0, 0], [0, 1], [0, 2], [1, 2]]
-            elif rot == 2:
-                ix_li = [[0, 1], [1, 1], [2, 0], [2, 1]]
-            elif rot == 3:
-                ix_li = [[0, 0], [1, 0], [1, 1], [1, 2]]
-        # =========================
-        # x    | xxx  | xx   |   x
-        # x    | x    |  x   | xxx
-        # xx   |      |  x   |
-        #      |      |      |
-        # =========================
-        elif self.block_type == 5:
-            if   rot == 0:
-                ix_li = [[0, 0], [1, 0], [2, 0], [2, 1]]
-            elif rot == 1:
-                ix_li = [[0, 0], [0, 1], [0, 2], [1, 0]]
-            elif rot == 2:
-                ix_li = [[0, 0], [0, 1], [1, 1], [2, 1]]
-            elif rot == 3:
-                ix_li = [[0, 2], [1, 0], [1, 1], [1, 2]]
-        # =========================
-        # x    |  xx
-        # xx   | xx
-        #  x   |
-        #      |
-        # =========================
-        elif self.block_type == 6:
-            if   rot % 2== 0:
-                ix_li = [[0, 0], [1, 0], [1, 1], [2, 1]]
-            elif rot % 2== 1:
-                ix_li = [[0, 1], [0, 2], [1, 0], [1, 1]]
-        # =========================
-        #  x   | xx
-        # xx   |  xx
-        # x    |
-        #      |
-        # =========================
-        elif self.block_type == 7:
-            if   rot % 2 == 0:
-                ix_li = [[0, 1], [1, 0], [1, 1], [2, 0]]
-            elif rot % 2== 1:
-                ix_li = [[0, 0], [0, 1], [1, 1], [1, 2]]
-
-        self.ix_li = np.array(ix_li)
-        self.rotation = (self.rotation + 1) % 4
+            self.move('')
+            if _pt == self.pt:
+                self.save_board()
+                self.update_cur_li()
+                self.gen_t4mino()
 
         return
 
 
-    def move(self, to: str='r') -> None:
+    def save_board(self) -> None:
 
-        if   to == 'l':     # right
-            self.point[1] += 1
-        elif to == 'h':     # left
-            self.point[1] -= 1
+        pt = self.pt
+        for ix in self.t4mino_li[self.cur][self.rot]:
+            self.board[ix[0]+pt[0], ix[1]+pt[1]] = self.cur + 1
+
+        # flush
+        for i in range(self.board_size[0]):
+            if (self.board[i] != 0).all():
+                for i_ in reversed(range(i)):
+                    self.board[i_+1] = self.board[i_]
+
+        return None
+
+
+    def move(self, to: str) -> None:
+
+        pt = self.pt
+        # left
+        if   to == 'h':
+            q_li = [pt[0]  , pt[1]-1, self.rot]
+        # right
+        elif to == 'l':
+            q_li = [pt[0]  , pt[1]+1, self.rot]
+        # rotate
         elif to == ' ':
-            self.rotate()
+            q_li = [pt[0]  , pt[1]  ,(self.rot+1)%4]
+        # down
+        else:
+            q_li = [pt[0]+1, pt[1]  , self.rot]
+
+        for ix in self.t4mino_li[self.cur][q_li[-1]]:
+            if ix[0]+q_li[0] >= self.board_size[0]          \
+            or ix[1]+q_li[1] < 0                            \
+            or ix[1]+q_li[1] >= self.board_size[1]          \
+            or self.board[ix[0]+q_li[0], ix[1]+q_li[1]] != 0:
+                return
+
+        pt[0], pt[1], self.rot = q_li
 
         return
 
 
-    def is_cont(self) -> bool:
+    def element(self, i: int, j: int) -> str:
 
-        return True
+        ix_li = self.t4mino_li[self.cur][self.rot]
+        pt = self.pt
+
+        for ix in ix_li:
+            if ix[0]+pt[0] == i and ix[1]+pt[1] == j:
+                return self.cur + 1
+
+        tmp = self.board[i, j]
+        return ' ' if tmp == 0 else tmp
 
 
     def display(self) -> None:
 
-        ix_li = self.ix_li + self.point
-        for h in range(self.height):
-            print('{:>2}|'.format(h), end='')
-            for w in range(self.width):
-
-                for ix in ix_li:
-                    if h == ix[0] and w == ix[1]:
-                        print(f'{self.block_type}', end='')
-                        break
-                else:
-                    part = self.board[h, w]
-                    print(f'{part}' if part != 0 else ' ', end='')
+        ix_li = self.t4mino_li[self.cur][self.rot]
+        pt = self.pt
+        for i in range(self.board_size[0]):
+            print('{:>2}|'.format(i), end='')
+            for j in range(self.board_size[1]):
+                print(self.element(i, j), end='')
 
             print()
 
-        print('--+' + '-' * self.width)
+        print('--+' + '-' * self.board_size[1])
+
+        print(f'next: {self.cur_li}')
 
         return
 
+    
+    def gen_t4mino(self) -> None:
 
-    def generate_block(self) -> None:
+        self.cur_li.append(np.random.randint(7))    # current tetrimino index
+        cur = self.cur_li[0]
+        # i
+        if   cur == 0:
+            pt = [0, self.board_size[1] // 2 - 2]
+        # otjlst
+        else:
+            pt = [0, self.board_size[1] // 2 - 1]
 
-        board = self.board
+        self.cur = cur
+        self.pt = pt
+        self.rot = 0
 
-        block_type = np.random.randint(1, 7+1, 1)[0]
-
-        # =========================
-        #      | xx   |  x   | x    |   x |  xx  | xx
-        # xxxx | xx   | xxx  | xxx  | xxx | xx   |  xx
-        #      |      |      |      |     |      |
-        #      |      |      |      |     |      |
-        # =========================
-        # case i
-        if   block_type == 1:
-            ix_li = [[1, 0], [1, 1], [1, 2], [1, 3]]
-        # case o
-        elif block_type == 2:
-            ix_li = [[0, 0], [0, 1], [1, 0], [1, 1]]
-        # case t
-        elif block_type == 3:
-            ix_li = [[0, 1], [1, 0], [1, 1], [1, 2]]
-        # case j
-        elif block_type == 4:
-            ix_li = [[0, 0], [1, 0], [1, 1], [1, 2]]
-        # case l
-        elif block_type == 5:
-            ix_li = [[0, 2], [1, 0], [1, 1], [1, 2]]
-        # case s
-        elif block_type == 6:
-            ix_li = [[0, 1], [0, 2], [1, 0], [1, 1]]
-        # case z
-        elif block_type == 7:
-            ix_li = [[0, 0], [0, 1], [1, 1], [1, 2]]
-
-        self.ix_li      = np.array(ix_li)
-        self.block_type = block_type
-        self.point      = np.array([0, self.width // 2])
-        self.rotation   = 0
+        return
 
 
 
 if __name__ == '__main__':
 
-    ta = TetrisAlg()
-
-    ta.game(True)
+    t = T()
+    t.game()
