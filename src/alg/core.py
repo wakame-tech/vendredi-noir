@@ -16,6 +16,21 @@ class T(object):
         self.init_cur_li()
         self.init_board()
         self.gen_t4mino()
+        self.holdable = True
+        self.cur_hold = None
+
+
+    def hold(self):
+
+        if self.holdable:
+            tmp = self.cur_hold
+            self.cur_hold = self.cur
+            if tmp is None:
+                self.gen_t4mino()
+            else:
+                self.cur = tmp
+            self.holdable = False
+            self.set_pt_rot()
 
 
     def wait_key(self, timeout_sec=1):
@@ -93,16 +108,36 @@ class T(object):
 
     def game(self, cui_mode=False):
 
-        while True:
+        cmd_load = 0
+        while self.yet():
 
             self.display()
             _pt = self.pt.copy()
             key = self.wait_key()
             self.move(key)
-            if (_pt == self.pt and (key is None or key not in 'hlfa')) or key == 'd':
+            if key in list('hlfas') + [None]:
+                cmd_load += 1
+            if cmd_load == 2:
+                cmd_load = 0
+                self.move()
+            if (_pt == self.pt and (key is None or key not in 'hlfas')) or key == 'd':
                 self.save_board()
                 self.update_cur_li()
                 self.gen_t4mino()
+                cmd_load = 0
+                self.holdable = True
+
+        print('END')
+
+        return False
+
+
+    def yet(self):
+
+        mid = self.board_size[1] // 2
+        if (self.board[0, mid-2:mid+2] == 0).all():
+            return True
+        return False
 
 
     def save_board(self):
@@ -133,6 +168,9 @@ class T(object):
         # rotate left
         elif to == 'a':
             q_li = [pt[0]  , pt[1]  ,(self.rot-1)%4]
+        # hold
+        elif to == 's':
+            return self.hold()
         # fall
         elif to == 'd':
             while self.move():
@@ -180,24 +218,21 @@ class T(object):
             print()
 
         print('--+' + '-' * self.board_size[1])
-
-        print(f'next: {self.cur_li}')
+        print(f'hold: {self.cur_hold+1 if self.cur_hold is not None else None} next: {[i+1 for i in self.cur_li]}')
 
     
+    def set_pt_rot(self):
+
+        # i, otjlst
+        self.pt = [0, self.board_size[1] // 2 - (2 if self.cur == 0 else 1)]
+        self.rot = 0
+
+
     def gen_t4mino(self):
 
         self.cur_li.append(np.random.randint(7))    # current tetrimino index
-        cur = self.cur_li[0]
-        # i
-        if   cur == 0:
-            pt = [0, self.board_size[1] // 2 - 2]
-        # otjlst
-        else:
-            pt = [0, self.board_size[1] // 2 - 1]
-
-        self.cur = cur
-        self.pt = pt
-        self.rot = 0
+        self.cur = self.cur_li[0]
+        self.set_pt_rot()
 
 
 
