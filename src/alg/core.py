@@ -33,13 +33,13 @@ class T(object):
             self.set_pt_rot()
 
 
-    def wait_key(self, timeout_sec=1):
+    def wait_key(self):
     
         def timeout(signum, frame):
             raise RuntimeError('timeout')
 
         signal.signal(signal.SIGALRM, timeout)
-        signal.alarm(timeout_sec)
+        signal.alarm(1)     # timeout sec
         try:
             fd = sys.stdin.fileno()
             old = termios.tcgetattr(fd)
