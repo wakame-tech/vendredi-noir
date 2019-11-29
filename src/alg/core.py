@@ -1,4 +1,5 @@
 import numpy as np
+import signal
 import sys
 import tty
 import termios
@@ -17,18 +18,29 @@ class T(object):
         self.gen_t4mino()
 
 
-    def getch(self):
+    def wait_key(self, timeout_sec=1):
+    
+        def timeout(signum, frame):
+            raise RuntimeError('timeout')
 
-        fd = sys.stdin.fileno()
-        old = termios.tcgetattr(fd)
+        signal.signal(signal.SIGALRM, timeout)
+        signal.alarm(timeout_sec)
         try:
-            tty.setraw(fd)
-            key = sys.stdin.read(1)
-            if ord(key) == 3:
-                raise KeyboardInterrupt()
-            return key
+            fd = sys.stdin.fileno()
+            old = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                key = sys.stdin.read(1)
+                if ord(key) == 3:
+                    raise KeyboardInterrupt()
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        except RuntimeError:
+            key = None
         finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old)
+            signal.alarm(0)
+
+        return key
 
 
     def init_t4mino(self):
@@ -85,11 +97,9 @@ class T(object):
 
             self.display()
             _pt = self.pt.copy()
-            key = self.getch()
+            key = self.wait_key()
             self.move(key)
-            if key in 'hlfa':
-                self.move()
-            if _pt == self.pt:
+            if (_pt == self.pt and (key is None or key not in 'hlfa')) or key == 'd':
                 self.save_board()
                 self.update_cur_li()
                 self.gen_t4mino()
@@ -108,7 +118,7 @@ class T(object):
                     self.board[i_+1] = self.board[i_]
 
 
-    def move(self, to: str=' '):
+    def move(self, to: str=' ') -> bool:
 
         pt = self.pt
         # left
@@ -123,6 +133,12 @@ class T(object):
         # rotate left
         elif to == 'a':
             q_li = [pt[0]  , pt[1]  ,(self.rot-1)%4]
+        # fall
+        elif to == 'd':
+            while self.move():
+                pass
+
+            return True
         # down
         else:
             q_li = [pt[0]+1, pt[1]  , self.rot]
@@ -132,9 +148,10 @@ class T(object):
             or ix[1]+q_li[1] < 0                            \
             or ix[1]+q_li[1] >= self.board_size[1]          \
             or self.board[ix[0]+q_li[0], ix[1]+q_li[1]] != 0:
-                return
+                return False
 
         pt[0], pt[1], self.rot = q_li
+        return True
 
 
     def element(self, i: int, j: int) -> str:
