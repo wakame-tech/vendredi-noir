@@ -39,7 +39,7 @@ class FallsPosition:
             ix_li = [[0, 0], [1, 0], [1, 1], [2, 1]]
 
         for ix in ix_li:
-            data_position_p[ix] = 1
+            data_position_p[h+ix[0]][w+ix[1]] = 1
             
         return data_position_p
 

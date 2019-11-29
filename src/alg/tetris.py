@@ -9,13 +9,13 @@ def minochoice(r):
 
     mino_choice = r
     if r == 0:
-        mino_choice = random.randint(1,7)
+        mino_choice = random.randint(1, 7)
     return mino_choice
 
 
 def main():
-    c_0 = (200,200,200)
-    c_1 = (242,242,242)
+    c_0 = (200, 200, 200)
+    c_1 = (242, 242, 242)
 
     x = 80
     y = 0
@@ -27,7 +27,7 @@ def main():
     fall_speed = 10
 
     pygame.init()
-    screen = pygame.display.set_mode((200,400))
+    screen = pygame.display.set_mode((200, 400))
     pygame.display.set_caption("Tetris")
     
     clock = pygame.time.Clock()
@@ -54,16 +54,16 @@ def main():
         screen.fill(c_1)
         mino = minochoice(mino)
     
-        for i,data in enumerate(data_color):
-            for e,d in enumerate(data):
+        for i, data in enumerate(data_color):
+            for e, d in enumerate(data):
                 h = i * 20
                 w = e * 20
-                pygame.draw.rect(screen, data_color[i][e], Rect(w,h,20,20), 0)
+                pygame.draw.rect(screen, data_color[i][e], Rect(w, h, 20, 20), 0)
 
         if gameover == 0:
 
-            for i,data in enumerate(data_position_p):
-                for e,d in enumerate(data):
+            for i, data in enumerate(data_position_p):
+                for e, d in enumerate(data):
                     if data_position_p[i][e] == 1:
                         data_position_p[i][e] = 0
 
@@ -72,41 +72,41 @@ def main():
 
             fp = FallsPosition()
             if mino == 1:
-                data_position_p = fp.z_p(h,w,r,data_position_p)
-                color = (0,255,0)
+                data_position_p = fp.z_p(h, w, r, data_position_p)
+                color = (0, 255, 0)
             elif mino == 2:
-                data_position_p = fp.r_z_p(h,w,r,data_position_p)    
-                color = (0,255,0) 
+                data_position_p = fp.r_z_p(h, w, r, data_position_p)    
+                color = (0, 255, 0) 
             elif mino == 3:
-                data_position_p = fp.stick_p(h,w,r,data_position_p)
-                color = (0,255,255) 
+                data_position_p = fp.stick_p(h, w, r, data_position_p)
+                color = (0, 255, 255) 
             elif mino == 4:
-                data_position_p = fp.l_p(h,w,r,data_position_p)
-                color = (255,127,0)
+                data_position_p = fp.l_p(h, w, r, data_position_p)
+                color = (255, 127, 0)
             elif mino == 5:
-                data_position_p = fp.r_l_p(h,w,r,data_position_p)
-                color = (255,127,0)
+                data_position_p = fp.r_l_p(h, w, r, data_position_p)
+                color = (255, 127, 0)
             elif mino == 6:
-                data_position_p = fp.rec_p(h,w,r,data_position_p)
-                color = (255,255,0) 
+                data_position_p = fp.rec_p(h, w, r, data_position_p)
+                color = (255, 255, 0) 
             elif mino == 7:
-                data_position_p = fp.r_t_p(h,w,r,data_position_p)
-                color = (255,0,0)
+                data_position_p = fp.r_t_p(h, w, r, data_position_p)
+                color = (255, 0, 0)
 
 
             wr_over = 0
             wl_over = 0
             h_over = 0
-            for i,data in enumerate(data_position):
+            for i, data in enumerate(data_position):
                 row_count = 0
-                for e,d in enumerate(data):
+                for e, d in enumerate(data):
                     if i < 19:
                         if data_position_p[i][e] == 1 and  data_position[i + 1][e] == 1:
                             touch = 1
                     if data_position_p[i][e] == 1:
                         h = i * 20 
                         w = e * 20
-                        pygame.draw.rect(screen, color, Rect(w,h,20,20), 0)
+                        pygame.draw.rect(screen, color, Rect(w, h, 20, 20), 0)
                         if i > 18:
                             h_over = 1
                         if e > 8:
@@ -120,17 +120,17 @@ def main():
                         del data_color[i]
                         array_a = [0] * 10
                         array_b = [(c_1)] * 10
-                        data_position.insert(0,array_a)
-                        data_color.insert(0,array_b)
+                        data_position.insert(0, array_a)
+                        data_color.insert(0, array_b)
                         fall_speed -= 1
                         
         line_y = 20
         line_x = 20
         while line_y < 400:
-            pygame.draw.line(screen, c_0, (0,line_y), (200,line_y))
+            pygame.draw.line(screen, c_0, (0, line_y), (200, line_y))
             line_y += 20
         while line_x < 200:
-            pygame.draw.line(screen, c_0, (line_x,0), (line_x,400))
+            pygame.draw.line(screen, c_0, (line_x, 0), (line_x, 400))
             line_x += 20
 
         a += 1
@@ -151,8 +151,8 @@ def main():
             r = 0
             touch = 0
             mino = 0
-            for i,data in enumerate(data_position_p):
-                for e,d in enumerate(data):
+            for i, data in enumerate(data_position_p):
+                for e, d in enumerate(data):
                     if data_position_p[i][e] == 1 and data_position[i][e] == 0:
                         data_position[i][e] = 1
                         data_color[i][e] = color
@@ -164,13 +164,13 @@ def main():
                 pygame.quit()
                 sys.exit()
             if event.type == KEYDOWN:
-                if event.key == K_RIGHT:
+                if event.key == ord('l'): #K_RIGHT
                     if x < 200 and wr_over == 0:
                         x += 20
-                if event.key == K_LEFT:
+                if event.key == ord('h'): #K_LEFT:
                     if x > 0 and wl_over == 0:
                         x -= 20
-                if event.key == K_UP:
+                if event.key == ord(' '): #K_UP:
                     if r >= 3:
                         r = 0
                     else:
@@ -178,6 +178,7 @@ def main():
                 if event.key == K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+
 
 if __name__ == "__main__":
     main()
