@@ -3,14 +3,17 @@ import signal
 import sys
 import tty
 import termios
+from datetime import datetime
 
 
 
-class T(object):
+class Tetris(object):
 
 
     def __init__(self):
 
+        dt_now = datetime.now()
+        np.random.seed(seed=dt_now.microsecond)
         self.board_size = [20, 10]
         self.init_t4mino()
         self.init_cur_li()
@@ -199,11 +202,11 @@ class T(object):
 
         for ix in ix_li:
             if ix[0]+pt[0] == i and ix[1]+pt[1] == j:
-                return self.cur + 1
+                return chr(ord('０') + self.cur + 1)
 
         tmp = self.board[i, j]
 
-        return ' ' if tmp == 0 else tmp
+        return '　' if tmp == 0 else chr(ord('０')+tmp)
 
 
     def display(self):
@@ -215,9 +218,9 @@ class T(object):
             for j in range(self.board_size[1]):
                 print(self.element(i, j), end='')
 
-            print()
+            print('|')
 
-        print('--+' + '-' * self.board_size[1])
+        print('--+' + 'ー' * self.board_size[1] + '+')
         print(f'hold: {self.cur_hold+1 if self.cur_hold is not None else None} next: {[i+1 for i in self.cur_li]}')
 
     
@@ -238,5 +241,5 @@ class T(object):
 
 if __name__ == '__main__':
 
-    t = T()
+    t = Tetris()
     t.game(True)
