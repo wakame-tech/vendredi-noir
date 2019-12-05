@@ -110,8 +110,7 @@ class Tetris(object):
 
             self.display()
             _pt = self.pt.copy()
-            #key = self.wait_key() if cui_mode else input()
-            key = input() 
+            key = self.wait_key() if cui_mode else input()
             self.move(key)
             if key in list('hlfas') + [None]:
                 cmd_load += 1
@@ -237,4 +236,4 @@ class Tetris(object):
 if __name__ == '__main__':
 
     t = Tetris()
-    t.game(True)
+    t.game()
