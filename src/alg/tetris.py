@@ -108,7 +108,8 @@ class Tetris(object):
         cmd_load = 0
         while self.yet():
 
-            self.display()
+            if cui_mode:
+                self.display()
             _pt = self.pt.copy()
             key = self.wait_key() if cui_mode else input()
             self.move(key)
