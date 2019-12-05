@@ -1,10 +1,4 @@
 import numpy as np
-import signal
-import sys
-import tty
-import termios
-from datetime import datetime
-
 
 
 class Tetris(object):
@@ -12,8 +6,6 @@ class Tetris(object):
 
     def __init__(self):
 
-        dt_now = datetime.now()
-        np.random.seed(seed=dt_now.microsecond)
         self.board_size = [20, 10]
         self.init_t4mino()
         self.init_cur_li()
@@ -37,6 +29,8 @@ class Tetris(object):
 
 
     def wait_key(self):
+
+        import tty, termios, signal, sys
     
         def timeout(signum, frame):
             raise RuntimeError('timeout')
@@ -116,7 +110,8 @@ class Tetris(object):
 
             self.display()
             _pt = self.pt.copy()
-            key = self.wait_key()
+            #key = self.wait_key() if cui_mode else input()
+            key = input() 
             self.move(key)
             if key in list('hlfas') + [None]:
                 cmd_load += 1

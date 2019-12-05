@@ -1,12 +1,20 @@
 import numpy as np
 
 
+class OthelloError(Exception):
+
+    pass
+
+
 class Othello(object):
 
 
-    def __init__(self):
+    def __init__(self, size: int=8):
 
-        self.size = 8
+        if size % 2 != 0:
+            raise OthelloError(f'size must be even number. <size: {size}>')
+
+        self.size = size
         self.space = 0
         self.black = 1
         self.white = 2
