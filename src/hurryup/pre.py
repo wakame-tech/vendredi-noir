@@ -22,6 +22,7 @@ class Game(object):
             tmp = self.cur_hold
             self.cur_hold = self.cur
             if tmp is None:
+                self.update_cur_li()
                 self.gen_t4mino()
             else:
                 self.cur = tmp
@@ -91,7 +92,9 @@ class Game(object):
 
     def init_cur_li(self):
 
-        self.cur_li = [np.random.randint(7) for _ in range(4)]
+        self.cur_li = []
+        for _ in range(4):
+            self.gen_t4mino()
 
 
     def update_cur_li(self):
