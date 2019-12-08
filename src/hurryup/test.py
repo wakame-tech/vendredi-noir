@@ -19,10 +19,11 @@ from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import (
+    QKeySequence
+)
 
 
-# ★今までに作成したコードからGameクラスをコピー★
-# コピーせずに上位ディレクトリから import する方が保守的に良いため、その方法をとった。
 class MyLabel(QLabel):
 
     def __init__(self, parent):
@@ -49,6 +50,8 @@ class TetrisWindow(QMainWindow):
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
 
+        self.show()
+
 
     def initUI(self):
         """ UIの初期化 """
@@ -56,48 +59,65 @@ class TetrisWindow(QMainWindow):
         self.setWindowTitle('Tetris')
 
         self.statusBar().showMessage('h: 左、l: 右')  # ステータスバーに文言を表示
-        self.__set_game_board()
+        self.init_game_board()
 
 
-    def __set_game_board(self):
-        # ゲームボードを構築する.
+    def init_game_board(self):
+        # ゲームボードを構築する。
 
         vbox = QVBoxLayout(spacing=0)
-        self.button_dic = {}
+        self.label_dic = {}
         for i in self.size_li_rg[0]:
             hbox = QHBoxLayout()
             for j in self.size_li_rg[1]:
-                button = MyLabel(self)
-                button.set_bg_color()
+                label = MyLabel(self)
+                label.set_bg_color()
 
-                # button と関数をつなげる。
-                self.button_dic[i, j] = button
-                hbox.addWidget(button)
+                # label と関数をつなげる。
+                self.label_dic[i, j] = label
+                hbox.addWidget(label)
             vbox.addLayout(hbox)
 
         container = QWidget()
         container.setLayout(vbox)
         self.setCentralWidget(container)
-        self.show()
 
 
-    def show_cell_status(self):
+    # keyPressEvent 関数のオーバーライド
+    def keyPressEvent(self, event):
+
+        g = self.game
+        key = QKeySequence(event.key()).toString()
+        if key == 'Q':
+            exit()
+
+        print(key)
+        g.move(key.lower())
+        print(g.display())
+        self.update_cell_status()
+
+        super(TetrisWindow, self).keyPressEvent(event)
+
+
+    def update_cell_status(self):
 
         g = self.game
         for i in self.size_li_rg[0]:
             for j in self.size_li_rg[1]:
                 part = g.board[i, j]
-                # ここで button を書き換える操作を記述する。
-                button = self.button_dic[i, j]
-                button.set_bg_color('blue')
+                # ここで label を書き換える操作を記述する。
+                label = self.label_dic[i, j]
+                label.set_bg_color('blue')
 
 
 
 def main():
+
     app = QApplication(sys.argv)
     w = TetrisWindow()
     app.exec_()
 
 
 if __name__ == '__main__':
+
     main()
