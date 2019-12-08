@@ -18,10 +18,12 @@ from Tetris import Game
 from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox
 )
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import (
     QKeySequence
 )
+
+from PyQt5.QtCore import QTimer
+
 
 
 class MyLabel(QLabel):
@@ -44,18 +46,36 @@ class TetrisWindow(QMainWindow):
 
     def __init__(self):
 
+        app = QApplication(sys.argv)
         print('RUNNING PROGRAMME')
         super(TetrisWindow, self).__init__()
         g = self.game = Game()
+        self.color_dic = [
+            '#444',     # nothing, space
+            'cyan',     # i
+            'yellow',   # o
+            'purple',   # t
+            'blue',     # j
+            'orange',   # l
+            'green',    # s
+            'red'       # t
+        ]
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
 
         self.show()
+        g._pt, g._rot, g._unique = [-1, -1], -1, -1
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_status)
+        self.timer.start(1000)  # updating per 1000 ms
+
+        app.exec_()
 
 
     def initUI(self):
         """ UIの初期化 """
-        self.resize(500, 500)
+        self.resize(250, 500)
         self.setWindowTitle('Tetris')
 
         self.statusBar().showMessage('h: 左、l: 右')  # ステータスバーに文言を表示
@@ -93,31 +113,41 @@ class TetrisWindow(QMainWindow):
 
         print(key)
         g.move(key.lower())
-        print(g.display())
-        self.update_cell_status()
+        self.update_board()
+        if key == 'D':
+            g.save_board()
+            g.update_cur_dic()
+            g.gen_t4mino()
+            g.holdable = True
 
         super(TetrisWindow, self).keyPressEvent(event)
 
 
-    def update_cell_status(self):
+    def update_status(self):
+
+        g = self.game
+        g.move()
+        self.update_board()
+        if g._pt == g.pt and g._rot == g.rot and g._unique == g.unique:
+            g.save_board()
+            g.update_cur_dic()
+            g.gen_t4mino()
+            g.holdable = True
+
+        print(g.unique)
+        g._pt, g._rot, g._unique = g.pt.copy(), g.rot, g.unique
+
+
+    def update_board(self):
 
         g = self.game
         for i in self.size_li_rg[0]:
             for j in self.size_li_rg[1]:
-                part = g.board[i, j]
-                # ここで label を書き換える操作を記述する。
                 label = self.label_dic[i, j]
-                label.set_bg_color('blue')
+                label.set_bg_color(self.color_dic[g.element(i, j)])
 
-
-
-def main():
-
-    app = QApplication(sys.argv)
-    w = TetrisWindow()
-    app.exec_()
 
 
 if __name__ == '__main__':
 
-    main()
+    TetrisWindow()
