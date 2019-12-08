@@ -62,7 +62,7 @@ class TetrisWindow(QMainWindow):
         self.initUI()
 
         self.show()
-        g._pt, g._rot, g._t4mino_id = [-1, -1], -1, -1
+        g._pt, g._rot, g._cur_t4mino_id = [-1, -1], -1, -1
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
@@ -118,6 +118,8 @@ class TetrisWindow(QMainWindow):
                 g.update_cur_dic()
                 g.gen_t4mino()
                 g.holdable = True
+            elif key == 'S':
+                g.holdable = False
 
             super(TetrisWindow, self).keyPressEvent(event)
 
@@ -127,13 +129,16 @@ class TetrisWindow(QMainWindow):
         g = self.game
         g.move()
         self.update_board()
-        if g._pt == g.pt and g._rot == g.rot and g._t4mino_id == g.t4mino_id:
+        print(g._pt, g.pt, g._rot, g.rot, g._cur_t4mino_id, g.cur_t4mino_id, g.cur_dic.values())
+        if g._pt == g.pt and g._rot == g.rot and g._cur_t4mino_id == g.cur_t4mino_id:
             g.save_board()
             g.update_cur_dic()
             g.gen_t4mino()
             g.holdable = True
 
-        g._pt, g._rot, g._t4mino_id = g.pt.copy(), g.rot, g.t4mino_id
+        g._pt, g._rot, g._cur_t4mino_id = g.pt.copy(), g.rot, g.cur_t4mino_id
+        if not g.yet():
+            exit() 
 
 
     def update_board(self):

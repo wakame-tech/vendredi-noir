@@ -114,8 +114,7 @@ class Game(object):
 
     def update_cur_dic(self):
 
-        if self.cur_t4mino_id in self.cur_dic:
-            self.cur_dic.pop(self.cur_t4mino_id)
+        self.cur_dic.pop(self.cur_t4mino_id)
 
 
     def init_board(self):
