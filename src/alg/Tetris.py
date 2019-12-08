@@ -19,30 +19,10 @@ class Game(object):
 
         self.cui_mode = cui_mode
         self.board_size = [20, 10]
-        self.t4mino_id = 0
         self.init_t4mino()
-        self.init_cur_dic()
+        self.init_cur_li()
         self.init_board()
         self.gen_t4mino()
-        self.holdable = True
-        self.cur_hold = None
-
-
-    def hold(self):
-
-        if self.holdable:
-            tmp = self.cur_hold
-            self.cur_hold = self.cur
-            if tmp is None:
-                self.hold_t4mino_id = self.cur_t4mino_id
-                self.cur_t4mino_id = list(self.cur_dic.keys())[0]
-                self.update_cur_dic()
-                self.gen_t4mino()
-            else:
-                self.cur = tmp
-                self.hold_t4mino_id, self.cur_t4mino_id = self.cur_t4mino_id, self.hold_t4mino_id
-            self.holdable = False
-            self.set_pt_rot()
 
 
     def wait_key(self):
@@ -105,17 +85,16 @@ class Game(object):
         ]
 
 
-    def init_cur_dic(self):
+    def init_cur_li(self):
 
-        self.cur_dic = {}
+        self.cur_li = []
         for _ in range(4):
             self.gen_t4mino()
 
 
-    def update_cur_dic(self):
+    def update_cur_li(self):
 
-        if self.cur_t4mino_id in self.cur_dic:
-            self.cur_dic.pop(self.cur_t4mino_id)
+        self.cur_li.pop(0)
 
 
     def init_board(self):
@@ -133,17 +112,16 @@ class Game(object):
             _pt = self.pt.copy()
             key = self.wait_key() if self.cui_mode else input()
             self.move(key)
-            if key in list('hlfas') + [None]:
+            if key in list('hlfa') + [None]:
                 cmd_load += 1
             if cmd_load == 2:
                 cmd_load = 0
                 self.move()
-            if (_pt == self.pt and (key is None or key not in 'hlfas')) or key == 'd':
+            if (_pt == self.pt and (key is None or key not in 'hlfa')) or key == 'd':
                 self.save_board()
-                self.update_cur_dic()
+                self.update_cur_li()
                 self.gen_t4mino()
                 cmd_load = 0
-                self.holdable = True
 
         print('END')
 
@@ -186,9 +164,6 @@ class Game(object):
         # rotate left
         elif to == 'a':
             q_li = [pt[0]  , pt[1]  ,(self.rot-1)%4]
-        # hold
-        elif to == 's':
-            return self.hold()
         # fall
         elif to == 'd':
             while self.move():
@@ -240,7 +215,7 @@ class Game(object):
             print('|')
 
         print('--+' + 'ー' * self.board_size[1] + '+')
-        print(f'hold: {self.cur_hold+1 if self.cur_hold is not None else None} next: {[i+1 for i in self.cur_dic.values()]}')
+        print(f'next: {[i+1 for i in self.cur_li]}')
 
     
     def set_pt_rot(self):
@@ -252,10 +227,9 @@ class Game(object):
 
     def gen_t4mino(self):
 
-        self.t4mino_id += 1
-        self.cur_dic[self.t4mino_id] = np.random.randint(7)    # current tetrimino index
-        self.cur_t4mino_id = list(self.cur_dic.keys())[0]
-        self.cur = self.cur_dic[self.cur_t4mino_id]
+        self.cur_li.append(np.random.randint(7))    # current tetrimino index
+
+        self.cur = self.cur_li[0]
         self.set_pt_rot()
 
 

@@ -114,7 +114,8 @@ class Game(object):
 
     def update_cur_dic(self):
 
-        self.cur_dic.pop(self.cur_t4mino_id)
+        if self.cur_t4mino_id in self.cur_dic:
+            self.cur_dic.pop(self.cur_t4mino_id)
 
 
     def init_board(self):
@@ -253,6 +254,9 @@ class Game(object):
 
         self.t4mino_id += 1
         self.cur_dic[self.t4mino_id] = np.random.randint(7)    # current tetrimino index
+        while len(self.cur_dic) > 5:
+            self.cur_dic.pop(list(self.cur_dic.keys())[-1])
+
         self.cur_t4mino_id = list(self.cur_dic.keys())[0]
         self.cur = self.cur_dic[self.cur_t4mino_id]
         self.set_pt_rot()
