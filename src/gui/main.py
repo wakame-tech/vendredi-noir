@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python3
+#!/usr/bin/env python3.8
 """
-Created on Wed Oct  9 10:45:35 2019
+Created on Sun Dic  8 16:30:35 2019
 
-マインスイーパー
-URL: https://github.com/278Mt/taniguchi/blob/master/04_1010_qt/Tetris_gui.py
+テトリスGUI部分
+URL: 
 @author: n_toba
 @id: 4617054
 """
 
-from platform import python_version
-if python_version() != '3.8.0':
-    raise Exception('your python is not 3.8.0')
 import sys
+sys.path.append('../alg')
 from os.path import abspath
 from Tetris import Game
 from PyQt5.QtWidgets import(
@@ -129,7 +127,6 @@ class TetrisWindow(QMainWindow):
         g = self.game
         g.move()
         self.update_board()
-        print(g._pt, g.pt, g._rot, g.rot, g._t4mino_id, g.t4mino_id)
         if g._pt == g.pt and g._rot == g.rot and g._t4mino_id == g.t4mino_id:
             g.save_board()
             g.update_cur_dic()

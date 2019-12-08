@@ -1,14 +1,16 @@
 import numpy as np
 
 
-class Tetris(object):
+class Game(object):
 
 
-    def __init__(self):
+    def __init__(self, cui_mode: bool=False):
 
+        self.cui_mode = cui_mode
         self.board_size = [20, 10]
+        self.t4mino_id = 0
         self.init_t4mino()
-        self.init_cur_li()
+        self.init_cur_dic()
         self.init_board()
         self.gen_t4mino()
         self.holdable = True
@@ -21,6 +23,7 @@ class Tetris(object):
             tmp = self.cur_hold
             self.cur_hold = self.cur
             if tmp is None:
+                self.update_cur_dic()
                 self.gen_t4mino()
             else:
                 self.cur = tmp
@@ -88,14 +91,16 @@ class Tetris(object):
         ]
 
 
-    def init_cur_li(self):
+    def init_cur_dic(self):
 
-        self.cur_li = [np.random.randint(7) for _ in range(4)]
+        self.cur_dic = {}
+        for _ in range(4):
+            self.gen_t4mino()
 
 
-    def update_cur_li(self):
+    def update_cur_dic(self):
 
-        self.cur_li.pop(0)
+        self.cur_dic.pop(list(self.cur_dic.keys())[0])
 
 
     def init_board(self):
@@ -103,15 +108,15 @@ class Tetris(object):
         self.board = np.zeros(self.board_size, dtype=np.int)
 
 
-    def game(self, cui_mode=False):
+    def game(self):
 
         cmd_load = 0
         while self.yet():
 
-            if cui_mode:
+            if self.cui_mode:
                 self.display()
             _pt = self.pt.copy()
-            key = self.wait_key() if cui_mode else input()
+            key = self.wait_key() if self.cui_mode else input()
             self.move(key)
             if key in list('hlfas') + [None]:
                 cmd_load += 1
@@ -120,7 +125,7 @@ class Tetris(object):
                 self.move()
             if (_pt == self.pt and (key is None or key not in 'hlfas')) or key == 'd':
                 self.save_board()
-                self.update_cur_li()
+                self.update_cur_dic()
                 self.gen_t4mino()
                 cmd_load = 0
                 self.holdable = True
@@ -197,11 +202,15 @@ class Tetris(object):
 
         for ix in ix_li:
             if ix[0]+pt[0] == i and ix[1]+pt[1] == j:
-                return chr(ord('０') + self.cur + 1)
+                if self.cui_mode:
+                    return chr(ord('０') + self.cur + 1)
+                return self.cur + 1
 
-        tmp = self.board[i, j]
+        if self.cui_mode:
+            tmp = self.board[i, j]
+            return '　' if tmp == 0 else chr(ord('０')+tmp)
 
-        return '　' if tmp == 0 else chr(ord('０')+tmp)
+        return self.board[i, j]
 
 
     def display(self):
@@ -216,25 +225,26 @@ class Tetris(object):
             print('|')
 
         print('--+' + 'ー' * self.board_size[1] + '+')
-        print(f'hold: {self.cur_hold+1 if self.cur_hold is not None else None} next: {[i+1 for i in self.cur_li]}')
+        print(f'hold: {self.cur_hold+1 if self.cur_hold is not None else None} next: {[i+1 for i in self.cur_dic.values()]}')
 
     
     def set_pt_rot(self):
 
         # i, otjlst
-        self.pt = [0, self.board_size[1] // 2 - (2 if self.cur == 0 else 1)]
+        self.pt  = [0, self.board_size[1] // 2 - (2 if self.cur == 0 else 1)]
         self.rot = 0
 
 
     def gen_t4mino(self):
 
-        self.cur_li.append(np.random.randint(7))    # current tetrimino index
-        self.cur = self.cur_li[0]
+        self.t4mino_id += 1
+        self.cur_dic[self.t4mino_id] = np.random.randint(7)    # current tetrimino index
+        self.cur = self.cur_dic[list(self.cur_dic.keys())[0]]
         self.set_pt_rot()
 
 
 
 if __name__ == '__main__':
 
-    t = Tetris()
-    t.game()
+    g = Game(True)
+    g.game()
