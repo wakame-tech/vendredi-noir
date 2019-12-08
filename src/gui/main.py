@@ -4,7 +4,7 @@
 Created on Sun Dic  8 16:30:35 2019
 
 テトリスGUI部分
-URL: 
+URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 @author: n_toba
 @id: 4617054
 """

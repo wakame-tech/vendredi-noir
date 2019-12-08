@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3.8
+"""
+Created on Sun Nov 24 12:31:20 2019
+
+テトリスのアルゴリズム部分
+URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/alg/Tetris.py
+@author: n_toba
+@id: 4617054
+"""
+
 import numpy as np
 
 
