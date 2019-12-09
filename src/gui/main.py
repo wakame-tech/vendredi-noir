@@ -73,31 +73,50 @@ class TetrisWindow(QMainWindow):
 
     def initUI(self):
         """ UIの初期化 """
-        self.resize(250, 500)
+        self.resize(500, 500)
         self.setWindowTitle('Tetris')
 
-        self.statusBar().showMessage('h: 左、l: 右')  # ステータスバーに文言を表示
+        self.statusBar().showMessage('h: 左,l: 右,f: 右回転,a: 左回転')  # ステータスバーに文言を表示
         self.init_game_board()
 
 
     def init_game_board(self):
         # ゲームボードを構築する。
 
-        vbox = QVBoxLayout(spacing=0)
+        box = QHBoxLayout(spacing=100)
+
+        # Playerのゲームボード
+        v1box = QVBoxLayout(spacing=1)
+        player1_label = QLabel('You')
+        v1box.addWidget(player1_label)
         self.label_dic = {}
         for i in self.size_li_rg[0]:
-            hbox = QHBoxLayout()
+            h1box = QHBoxLayout()
             for j in self.size_li_rg[1]:
-                label = MyLabel(self)
-                label.set_bg_color()
+                label1 = MyLabel(self)
+                label1.set_bg_color()
 
                 # label と関数をつなげる。
-                self.label_dic[i, j] = label
-                hbox.addWidget(label)
-            vbox.addLayout(hbox)
+                self.label_dic[i, j] = label1
+                h1box.addWidget(label1)
+            v1box.addLayout(h1box)
 
+        # 対戦相手のゲームボード
+        v2box = QVBoxLayout(spacing=1)
+        player2_label = QLabel('Opponent')
+        v2box.addWidget(player2_label)
+        for i in self.size_li_rg[0]:
+            h2box = QHBoxLayout()
+            for j in self.size_li_rg[1]:
+                label2 = MyLabel(self)
+                label2.set_bg_color()
+                h2box.addWidget(label2)
+            v2box.addLayout(h2box)
+
+        box.addLayout(v1box)
+        box.addLayout(v2box)
         container = QWidget()
-        container.setLayout(vbox)
+        container.setLayout(box)
         self.setCentralWidget(container)
 
 
