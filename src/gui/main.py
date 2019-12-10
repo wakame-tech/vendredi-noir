@@ -101,12 +101,12 @@ class TetrisWindow(QMainWindow):
         for i in self.size_li_rg[0]:
             h1box = QHBoxLayout()
             for j in self.size_li_rg[1]:
-                label1 = MyLabel(self)
-                label1.set_bg_color()
+                label = MyLabel(self)
+                label.set_bg_color()
 
                 # label と関数をつなげる。
-                self.label_dic[i, j] = label1
-                h1box.addWidget(label1)
+                self.label_dic[i, j] = label
+                h1box.addWidget(label)
             v1box.addLayout(h1box)
 
         # 対戦相手のゲームボード
@@ -117,11 +117,11 @@ class TetrisWindow(QMainWindow):
         for i in self.size_li_rg[0]:
             h2box = QHBoxLayout()
             for j in self.size_li_rg[1]:
-                label2 = MyLabel(self)
-                label2.set_bg_color()
+                label = MyLabel(self)
+                label.set_bg_color()
                 # label と関数をつなげる。
-                self.opponent_label_dic[i, j] = label2
-                h2box.addWidget(label2)
+                self.opponent_label_dic[i, j] = label
+                h2box.addWidget(label)
             v2box.addLayout(h2box)
 
         box.addLayout(v1box)
@@ -171,38 +171,44 @@ class TetrisWindow(QMainWindow):
                 label = self.label_dic[i, j]
                 label.set_bg_color(self.color_dic[g.element(i, j)])
 
-    def send_board(self):
+    
+    def get_state(self) -> {str: object}:
+
         g = self.game
         state = {
-            'board': g.board,
-            'cur': g.cur,
-            'cur_li': g.cur_li,
+            'board'     : g.board,
+            'cur'       : g.cur,
+            'cur_li'    : g.cur_li,
             'board_size': g.board_size
         }
+        return state
+        
+
+    def send_board(self):
+
+        state = self.get_state()
+
         print('[Send]')
 
-    def sync_status(self):
-        # mirroring mock
-        g = self.game
-        state = {
-            'board': g.board,
-            'cur': g.cur,
-            'cur_li': g.cur_li,
-            'board_size': g.board_size
-        }
 
+    def sync_status(self):
+
+        # mirroring mock
+        state = self.get_state()
         [height, width] = state['board_size']
         board = state['board']
-        print('[Recv] %d x %d' % (height, width))
+        print(f'[Recv] {height} x {width}')
 
         print(self.opponent_label_dic[0, 0])
-        print(board[0][0])
+        print(board[0, 0])
 
         # reflect to board
         for i in range(height):
             for j in range(width):
                 label = self.opponent_label_dic[i, j]
-                label.set_bg_color(self.color_dic[board[i][j]])
+                label.set_bg_color(self.color_dic[board[i, j]])
+
+
 
 if __name__ == '__main__':
 
