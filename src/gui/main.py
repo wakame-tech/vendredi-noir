@@ -17,7 +17,7 @@ sys.path.append('../alg')
 from os.path import abspath
 from Tetris import Game
 from PyQt5.QtWidgets import(
-    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox
+    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction
 )
 from PyQt5.QtGui import (
     QKeySequence
@@ -86,6 +86,13 @@ class TetrisWindow(QMainWindow, Api):
         """ UIの初期化 """
         self.resize(750, 500)
         self.setWindowTitle('Tetris')
+
+        # 終了ボタン
+        exitAction = QAction('&Exit Game', self)
+        exitAction.triggered.connect(self.close)
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu('&Menu')
+        fileMenu.addAction(exitAction)
 
         self.statusBar().showMessage('h: 左, l: 右, f: 右回転, a: 左回転')  # ステータスバーに文言を表示
         self.init_game_board()
