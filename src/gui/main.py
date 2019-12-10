@@ -84,7 +84,7 @@ class TetrisWindow(QMainWindow, Api):
 
     def initUI(self):
         """ UIの初期化 """
-        self.resize(500, 500)
+        self.resize(750, 500)
         self.setWindowTitle('Tetris')
 
         self.statusBar().showMessage('h: 左, l: 右, f: 右回転, a: 左回転')  # ステータスバーに文言を表示
@@ -94,8 +94,9 @@ class TetrisWindow(QMainWindow, Api):
     def init_game_board(self):
         # ゲームボードを構築する。
 
-        box1 = QHBoxLayout(spacing=10)
-        box2 = QHBoxLayout(spacing=100)
+        box1 = QHBoxLayout()
+        sidebox = QVBoxLayout(spacing=50)
+        box2 = QHBoxLayout()
 
         # Playerのゲームボード
         v1box = QVBoxLayout(spacing=1)
@@ -114,16 +115,28 @@ class TetrisWindow(QMainWindow, Api):
             v1box.addLayout(h1box)
 
         # 次のミノを表示するスペース
-        # nextbox = QVBoxLayout(spacing=1)
-        # next_label = QLabel('次のミノ')
-        # nextbox.addWidget(next_label)
-        # for i in range(4):
-        #     nexthbox = QHBoxLayout()
-        #     for j in range(4):
-        #         label = MyLabel(self)
-        #         label.set_bg_color()
-        #         nexthbox.addWidget(label)
-        #     nextbox.addLayout(nexthbox)
+        nextbox = QVBoxLayout(spacing=1)
+        next_label = QLabel('Next mino')
+        nextbox.addWidget(next_label)
+        for i in range(4):
+            nexthbox = QHBoxLayout()
+            for j in range(4):
+                label = MyLabel(self)
+                label.set_bg_color()
+                nexthbox.addWidget(label)
+            nextbox.addLayout(nexthbox)
+
+        # Hold中のミノを表示するスペース
+        holdbox = QVBoxLayout(spacing=1)
+        hold_label = QLabel('Holding mino')
+        holdbox.addWidget(hold_label)
+        for i in range(4):
+            holdhbox = QHBoxLayout()
+            for j in range(4):
+                label = MyLabel(self)
+                label.set_bg_color()
+                holdhbox.addWidget(label)
+            holdbox.addLayout(holdhbox)
 
         # 対戦相手のゲームボード
         v2box = QVBoxLayout(spacing=1)
@@ -140,8 +153,10 @@ class TetrisWindow(QMainWindow, Api):
                 h2box.addWidget(label)
             v2box.addLayout(h2box)
 
+        sidebox.addLayout(nextbox)
+        sidebox.addLayout(holdbox)
         box1.addLayout(v1box)
-        #box1.addLayout(nextbox)
+        box1.addLayout(sidebox)
         box2.addLayout(box1)
         box2.addLayout(v2box)
         container = QWidget()
