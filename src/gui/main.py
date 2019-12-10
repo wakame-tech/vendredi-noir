@@ -51,6 +51,7 @@ class MyLabel(QLabel):
 
 
 class TetrisWindow(QMainWindow, Api):
+
     def __init__(self):
         app = QApplication(sys.argv)
         print('RUNNING PROGRAMME')
@@ -81,6 +82,7 @@ class TetrisWindow(QMainWindow, Api):
         self.timer.start(interval)
 
         app.exec_()
+
 
     def initUI(self):
         """ UIの初期化 """
@@ -165,6 +167,7 @@ class TetrisWindow(QMainWindow, Api):
         if not g.yet():
             exit() 
 
+
     def update_board(self):
 
         g = self.game
@@ -200,13 +203,14 @@ class TetrisWindow(QMainWindow, Api):
 
         if is_host:
             limit = 5
-            print('matching %ds ...' % limit)
+            print(f'matching {limit}s ...')
             time.sleep(limit)
             self.game_start(room_name)
         else:
             while not started:
-                print('waiting start ... %s' % started)
+                print(f'waiting start ... {started}')
                 time.sleep(1)
+
 
     def send_board(self):
 
@@ -215,9 +219,11 @@ class TetrisWindow(QMainWindow, Api):
         print('[Send]')
         self.send_state(state)
 
+
     @event('connected')
     def connected(self):
         print('[Connected from Class]')
+
 
     @event('updated')
     def sync_status(self, state):
@@ -237,7 +243,6 @@ class TetrisWindow(QMainWindow, Api):
                 label.set_bg_color(self.color_dic[board[i][j]])
 
 
-
     @event('disconnected')
     def disconnected(self):
         print("[Disconnected]")
@@ -248,9 +253,11 @@ class TetrisWindow(QMainWindow, Api):
     def room_created(self, res):
         print('created')
 
+
     @event('room_joined')
     def room_joined(self, res):
         print('joined')
+
 
     @event('game_started')
     def game_started(self, res):
@@ -258,10 +265,12 @@ class TetrisWindow(QMainWindow, Api):
         global started
         started = True
 
+
     @event('game_ended')
     def game_ended(self, res):
         print('game ended')
         sys.exit()
+
 
 
 if __name__ == '__main__':
