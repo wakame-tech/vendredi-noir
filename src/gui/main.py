@@ -38,6 +38,7 @@ class MyLabel(QLabel):
         super(MyLabel, self).__init__(parent)
         self.parent = parent
         self.setMinimumSize(7, 7)
+        self.setMaximumSize(25, 25)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
 
@@ -93,7 +94,8 @@ class TetrisWindow(QMainWindow, Api):
     def init_game_board(self):
         # ゲームボードを構築する。
 
-        box = QHBoxLayout(spacing=100)
+        box1 = QHBoxLayout(spacing=10)
+        box2 = QHBoxLayout(spacing=100)
 
         # Playerのゲームボード
         v1box = QVBoxLayout(spacing=1)
@@ -111,6 +113,18 @@ class TetrisWindow(QMainWindow, Api):
                 h1box.addWidget(label)
             v1box.addLayout(h1box)
 
+        # 次のミノを表示するスペース
+        # nextbox = QVBoxLayout(spacing=1)
+        # next_label = QLabel('次のミノ')
+        # nextbox.addWidget(next_label)
+        # for i in range(4):
+        #     nexthbox = QHBoxLayout()
+        #     for j in range(4):
+        #         label = MyLabel(self)
+        #         label.set_bg_color()
+        #         nexthbox.addWidget(label)
+        #     nextbox.addLayout(nexthbox)
+
         # 対戦相手のゲームボード
         v2box = QVBoxLayout(spacing=1)
         player2_label = QLabel('Opponent')
@@ -126,10 +140,12 @@ class TetrisWindow(QMainWindow, Api):
                 h2box.addWidget(label)
             v2box.addLayout(h2box)
 
-        box.addLayout(v1box)
-        box.addLayout(v2box)
+        box1.addLayout(v1box)
+        #box1.addLayout(nextbox)
+        box2.addLayout(box1)
+        box2.addLayout(v2box)
         container = QWidget()
-        container.setLayout(box)
+        container.setLayout(box2)
         self.setCentralWidget(container)
 
 
