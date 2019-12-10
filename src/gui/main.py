@@ -10,6 +10,8 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 """
 
 import sys
+import time
+from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
 from Tetris import Game
@@ -22,7 +24,11 @@ from PyQt5.QtGui import (
 
 from PyQt5.QtCore import QTimer
 
+ENDPOINT = 'https://vendredi-noir.herokuapp.com'
+# ENDPOINT = 'http://localhost:5000'
 
+# TODO
+global started
 
 class MyLabel(QLabel):
 
@@ -43,13 +49,12 @@ class MyLabel(QLabel):
 
 
 
-class TetrisWindow(QMainWindow):
-
+class TetrisWindow(QMainWindow, Api):
     def __init__(self):
-
         app = QApplication(sys.argv)
         print('RUNNING PROGRAMME')
         super(TetrisWindow, self).__init__()
+        super(Api, self).__init__()
         g = self.game = Game()
         self.color_dic = [
             None,       # nothing, space
@@ -67,17 +72,14 @@ class TetrisWindow(QMainWindow):
         self.show()
         g._pt, g._rot = [-1, -1], -1
 
+        self.connect_server()
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
-        self.timer.start(300)  # updating per 1000 ms
-
-        # sync opponent state
-        opponent_ticker = QTimer(self)
-        opponent_ticker.timeout.connect(self.sync_status)
-        opponent_ticker.start(300)
+        interval = 1000 # ms
+        self.timer.start(interval)
 
         app.exec_()
-
 
     def initUI(self):
         """ UIの初期化 """
@@ -162,7 +164,6 @@ class TetrisWindow(QMainWindow):
         if not g.yet():
             exit() 
 
-
     def update_board(self):
 
         g = self.game
@@ -171,9 +172,29 @@ class TetrisWindow(QMainWindow):
                 label = self.label_dic[i, j]
                 label.set_bg_color(self.color_dic[g.element(i, j)])
 
-    
-    def get_state(self) -> {str: object}:
+    def connect_server(self):
+        # TODO: refactoring
+        self.connect(ENDPOINT)
+        is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
+        room_name = 'AAA'
+        global started
+        started = False
+        if is_host:
+            self.create_room(room_name)
+        else:
+            self.join_room(room_name)
 
+        if is_host:
+            limit = 5
+            print('matching %ds ...' % limit)
+            time.sleep(limit)
+            self.game_start(room_name)
+        else:
+            while not started:
+                print('waiting start ... %s' % started)
+                time.sleep(1)
+
+    def send_board(self):
         g = self.game
         state = {
             'board'     : g.board,
@@ -189,18 +210,28 @@ class TetrisWindow(QMainWindow):
         state = self.get_state()
 
         print('[Send]')
+        self.send_state(state)
 
+    @event('connected')
+    def connected(self):
+        print('[Connected from Class]')
 
-    def sync_status(self):
+    @event('updated')
+    def sync_status(self, state):
+        # mirroring mock---------------
+        g = self.game
+        state = {
+            'board': g.board,
+            'cur': g.cur,
+            'cur_li': g.cur_li,
+            'board_size': g.board_size
+        }
+        # -----------------------------
 
-        # mirroring mock
-        state = self.get_state()
+        print('[Recv]')
+        print(state)
         [height, width] = state['board_size']
         board = state['board']
-        print(f'[Recv] {height} x {width}')
-
-        print(self.opponent_label_dic[0, 0])
-        print(board[0, 0])
 
         # reflect to board
         for i in range(height):
@@ -210,6 +241,31 @@ class TetrisWindow(QMainWindow):
 
 
 
-if __name__ == '__main__':
+    @event('disconnected')
+    def disconnected(self):
+        print("[Disconnected]")
+        sys.exit()
 
+
+    @event('room_created')
+    def room_created(self, res):
+        print('created')
+
+    @event('room_joined')
+    def room_joined(self, res):
+        print('joined')
+
+    @event('game_started')
+    def game_started(self, res):
+        print('game started')
+        global started
+        started = True
+
+    @event('game_ended')
+    def game_ended(self, res):
+        print('game ended')
+        sys.exit()
+
+
+if __name__ == '__main__':
     TetrisWindow()

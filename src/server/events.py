@@ -67,7 +67,7 @@ def on_game_end(req):
 def on_move(req):
     room_name = room_of(request.sid)
     # print_board(req)
-    emit('response_board', req, broadcast=True, room=room_name)
+    emit('response_board', req, broadcast=True)  # , room=room_name)
 
 
 @socketio.on('disconnect')
