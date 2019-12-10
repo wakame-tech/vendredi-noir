@@ -11,7 +11,8 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 
 import sys
 import time
-from api_wrapper import Api, event
+import json
+from api_wrapper import Api, NdArrayJsonEncoder, event
 sys.path.append('../alg')
 from os.path import abspath
 from Tetris import Game
@@ -220,11 +221,10 @@ class TetrisWindow(QMainWindow, Api):
     def sync_status(self, state):
         # mirroring for debug ---------
         g = self.game
-        state = self.get_state()
+        state = json.loads(json.dumps(self.get_state(), cls=NdArrayJsonEncoder))
         # -----------------------------
 
         print('[Recv]')
-        print(state)
         [height, width] = state['board_size']
         board = state['board']
 
@@ -232,7 +232,7 @@ class TetrisWindow(QMainWindow, Api):
         for i in range(height):
             for j in range(width):
                 label = self.opponent_label_dic[i, j]
-                label.set_bg_color(self.color_dic[board[i, j]])
+                label.set_bg_color(self.color_dic[board[i][j]])
 
 
 
