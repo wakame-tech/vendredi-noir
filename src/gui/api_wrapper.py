@@ -8,17 +8,17 @@ import os
 import time
 import sys
 import json
-import numpy
+import numpy as np
 from functools import wraps
 
 
 class NdArrayJsonEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, numpy.integer):
+        if isinstance(obj, np.integer):
             return int(obj)
-        elif isinstance(obj, numpy.floating):
+        elif isinstance(obj, np.floating):
             return float(obj)
-        elif isinstance(obj, numpy.ndarray):
+        elif isinstance(obj, np.ndarray):
             return obj.tolist()
         else:
             return super(NdArrayJsonEncoder, self).default(obj)

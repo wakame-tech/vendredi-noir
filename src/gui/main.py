@@ -43,10 +43,7 @@ class MyLabel(QLabel):
 
     def set_bg_color(self, colorname: str=None):
         
-        if colorname is None:
-            colorname = 'gray'
-
-        self.setStyleSheet(f'MyLabel{{background-color: {colorname}}}')
+        self.setStyleSheet(f'MyLabel{{background-color: {colorname if colorname is not None else "#aaa"}}}')
 
 
 
@@ -89,7 +86,7 @@ class TetrisWindow(QMainWindow, Api):
         self.resize(500, 500)
         self.setWindowTitle('Tetris')
 
-        self.statusBar().showMessage('h: 左,l: 右,f: 右回転,a: 左回転')  # ステータスバーに文言を表示
+        self.statusBar().showMessage('h: 左, l: 右, f: 右回転, a: 左回転')  # ステータスバーに文言を表示
         self.init_game_board()
 
 
@@ -245,7 +242,7 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('disconnected')
     def disconnected(self):
-        print("[Disconnected]")
+        print('[Disconnected]')
         sys.exit()
 
 
@@ -274,4 +271,5 @@ class TetrisWindow(QMainWindow, Api):
 
 
 if __name__ == '__main__':
+
     TetrisWindow()
