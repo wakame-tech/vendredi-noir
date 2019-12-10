@@ -71,6 +71,11 @@ class TetrisWindow(QMainWindow):
         self.timer.timeout.connect(self.update_status)
         self.timer.start(300)  # updating per 1000 ms
 
+        # sync opponent state
+        opponent_ticker = QTimer(self)
+        opponent_ticker.timeout.connect(self.sync_status)
+        opponent_ticker.start(300)
+
         app.exec_()
 
 
@@ -108,11 +113,14 @@ class TetrisWindow(QMainWindow):
         v2box = QVBoxLayout(spacing=1)
         player2_label = QLabel('Opponent')
         v2box.addWidget(player2_label)
+        self.opponent_label_dic = {}
         for i in self.size_li_rg[0]:
             h2box = QHBoxLayout()
             for j in self.size_li_rg[1]:
                 label2 = MyLabel(self)
                 label2.set_bg_color()
+                # label と関数をつなげる。
+                self.opponent_label_dic[i, j] = label2
                 h2box.addWidget(label2)
             v2box.addLayout(h2box)
 
@@ -144,6 +152,7 @@ class TetrisWindow(QMainWindow):
         g = self.game
         g.move()
         self.update_board()
+        self.send_board()
         if g._pt == g.pt and g._rot == g.rot:
             g.save_board()
             g.update_cur_li()
@@ -162,7 +171,38 @@ class TetrisWindow(QMainWindow):
                 label = self.label_dic[i, j]
                 label.set_bg_color(self.color_dic[g.element(i, j)])
 
+    def send_board(self):
+        g = self.game
+        state = {
+            'board': g.board,
+            'cur': g.cur,
+            'cur_li': g.cur_li,
+            'board_size': g.board_size
+        }
+        print('[Send]')
 
+    def sync_status(self):
+        # mirroring mock
+        g = self.game
+        state = {
+            'board': g.board,
+            'cur': g.cur,
+            'cur_li': g.cur_li,
+            'board_size': g.board_size
+        }
+
+        [height, width] = state['board_size']
+        board = state['board']
+        print('[Recv] %d x %d' % (height, width))
+
+        print(self.opponent_label_dic[0, 0])
+        print(board[0][0])
+
+        # reflect to board
+        for i in range(height):
+            for j in range(width):
+                label = self.opponent_label_dic[i, j]
+                label.set_bg_color(self.color_dic[board[i][j]])
 
 if __name__ == '__main__':
 
