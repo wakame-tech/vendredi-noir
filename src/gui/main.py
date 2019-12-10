@@ -172,6 +172,17 @@ class TetrisWindow(QMainWindow, Api):
                 label = self.label_dic[i, j]
                 label.set_bg_color(self.color_dic[g.element(i, j)])
 
+    def get_state(self) -> {str: object}:
+        
+        g = self.game
+        state = {
+            'board'     : g.board,
+            'cur'       : g.cur,
+            'cur_li'    : g.cur_li,
+            'board_size': g.board_size
+        }
+        return state
+
     def connect_server(self):
         # TODO: refactoring
         self.connect(ENDPOINT)
@@ -195,17 +206,6 @@ class TetrisWindow(QMainWindow, Api):
                 time.sleep(1)
 
     def send_board(self):
-        g = self.game
-        state = {
-            'board'     : g.board,
-            'cur'       : g.cur,
-            'cur_li'    : g.cur_li,
-            'board_size': g.board_size
-        }
-        return state
-        
-
-    def send_board(self):
 
         state = self.get_state()
 
@@ -218,14 +218,9 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('updated')
     def sync_status(self, state):
-        # mirroring mock---------------
+        # mirroring for debug ---------
         g = self.game
-        state = {
-            'board': g.board,
-            'cur': g.cur,
-            'cur_li': g.cur_li,
-            'board_size': g.board_size
-        }
+        state = self.get_state()
         # -----------------------------
 
         print('[Recv]')
