@@ -76,7 +76,7 @@ class TetrisWindow(QMainWindow, Api):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
-        interval = 1000 # ms
+        interval = 300 # ms
         self.timer.start(interval)
 
         app.exec_()
@@ -172,6 +172,7 @@ class TetrisWindow(QMainWindow, Api):
                 label = self.label_dic[i, j]
                 label.set_bg_color(self.color_dic[g.element(i, j)])
 
+
     def get_state(self) -> {str: object}:
         
         g = self.game
@@ -182,6 +183,7 @@ class TetrisWindow(QMainWindow, Api):
             'board_size': g.board_size
         }
         return state
+
 
     def connect_server(self):
         # TODO: refactoring
