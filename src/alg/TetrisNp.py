@@ -9,105 +9,7 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/alg/Tetris.py
 @id: 4617054
 """
 
-import random
-
-
-class TetrisError(Exception):
-
-    pass
-
-
-
-class Board(object):
-
-    def __init__(self, board_size: [int]):
-
-        if type(board_size) is not list or len(board_size) != 2:
-            raise TetrisError(f'board_size must be list and its length is just 2.<board_size={board_size}>')
-
-        self.board = [[0 for _ in range(board_size[1])] for _ in range(board_size[0])]
-
-
-    def __getitem__(self, key: int or tuple):
-
-        if type(key) is int:
-            return self.board[key]
-        elif type(key) is tuple and len(key) == 2:
-            return self.board[key[0]][key[1]]
-        else:
-            raise TetrisError(f'Irregal key.<key={key}>')
-
-
-    def __setitem__(self, key: int or tuple, val2: int or [int]):
-
-        if type(key) is int:
-            if type(val2) is int:
-                for i in range(len(self.board[key])):
-                    self.board[key][i] = val2
-            elif type(val2) is list:
-                for i in range(len(self.board[key])):
-                    self.board[key][i] = val2[i]
-            else:
-                raise TetrisError(f'Irregal value.<val2={val2}>')
-        elif type(key) is tuple and len(key) == 2 and type(val2) is int:
-            self.board[key[0]][key[1]] = val2
-        else:
-            raise TetrisError(f'Irregal key.<key={key}>')
-
-
-    def __repr__(self):
-
-        res = ''
-        for part in self.board:
-            for element in part:
-                res += f'{element} '
-            res = f'{res[:-1]}\n'
-
-        return res[:-1]
-
-
-
-class Tetrimino(object):
-
-    def __init__(self):
-
-        self.t4mino_li = [
-            # i
-            [[[1, i] for i in range(4)],
-             [[i, 1] for i in range(4)]] * 2,
-            # o
-            [[[0, 0], [0, 1], [1, 0], [1, 1]]] * 4,
-            # t
-            [[[0, 1]] + [[1, i] for i in range(3)],
-             [[1, 2]] + [[i, 1] for i in range(3)],
-             [[2, 1]] + [[1, i] for i in range(3)],
-             [[1, 0]] + [[i, 1] for i in range(3)]],
-            # j
-            [[[0, 0]] + [[1, i] for i in range(3)],
-             [[0, 2]] + [[i, 1] for i in range(3)],
-             [[2, 2]] + [[1, i] for i in range(3)],
-             [[2, 0]] + [[i, 1] for i in range(3)]],
-            # l
-            [[[0, 2]] + [[1, i] for i in range(3)],
-             [[2, 2]] + [[i, 1] for i in range(3)],
-             [[2, 0]] + [[1, i] for i in range(3)],
-             [[0, 0]] + [[i, 1] for i in range(3)]],
-            # s
-            [[[0, 1], [0, 2], [1, 0], [1, 1]],
-             [[0, 0], [1, 0], [1, 1], [2, 1]]] * 2,
-            # t
-            [[[0, 0], [0, 1], [1, 1], [1, 2]],
-             [[0, 1], [1, 0], [1, 1], [2, 0]]] * 2
-        ]
-
-
-    def __getitem__(self, key: tuple):
-
-        if type(key) is not tuple or len(key) != 2:
-            raise TetrisError(f'Irregal key.<key={key}>')
-
-        return self.t4mino_li[key[0]][key[1]]
-
+import numpy as np
 
 
 class Game(object):
@@ -153,7 +55,34 @@ class Game(object):
     def init_t4mino(self):
         
         # including rotation table
-        self.t4mino_li = Tetrimino()
+        self.t4mino_li = [
+            # i
+            [[[1, i] for i in range(4)],
+             [[i, 1] for i in range(4)]] * 2,
+            # o
+            [[[0, 0], [0, 1], [1, 0], [1, 1]]] * 4,
+            # t
+            [[[0, 1]] + [[1, i] for i in range(3)],
+             [[1, 2]] + [[i, 1] for i in range(3)],
+             [[2, 1]] + [[1, i] for i in range(3)],
+             [[1, 0]] + [[i, 1] for i in range(3)]],
+            # j
+            [[[0, 0]] + [[1, i] for i in range(3)],
+             [[0, 2]] + [[i, 1] for i in range(3)],
+             [[2, 2]] + [[1, i] for i in range(3)],
+             [[2, 0]] + [[i, 1] for i in range(3)]],
+            # l
+            [[[0, 2]] + [[1, i] for i in range(3)],
+             [[2, 2]] + [[i, 1] for i in range(3)],
+             [[2, 0]] + [[1, i] for i in range(3)],
+             [[0, 0]] + [[i, 1] for i in range(3)]],
+            # s
+            [[[0, 1], [0, 2], [1, 0], [1, 1]],
+             [[0, 0], [1, 0], [1, 1], [2, 1]]] * 2,
+            # t
+            [[[0, 0], [0, 1], [1, 1], [1, 2]],
+             [[0, 1], [1, 0], [1, 1], [2, 0]]] * 2
+        ]
 
 
     def init_cur_li(self):
@@ -170,7 +99,7 @@ class Game(object):
 
     def init_board(self):
 
-        self.board = Board(self.board_size)
+        self.board = np.zeros(self.board_size, dtype=np.int8)
 
 
     def game(self):
@@ -202,7 +131,7 @@ class Game(object):
     def yet(self):
 
         mid = self.board_size[1] // 2
-        if sum(self.board[0, mid-2:mid+2]) == 0:
+        if (self.board[0, mid-2:mid+2] == 0).all():
             return True
         return False
 
@@ -210,12 +139,12 @@ class Game(object):
     def save_board(self):
 
         pt = self.pt
-        for ix in self.t4mino_li[self.cur, self.rot]:
+        for ix in self.t4mino_li[self.cur][self.rot]:
             self.board[ix[0]+pt[0], ix[1]+pt[1]] = self.cur + 1
 
         # flush
         for i in range(self.board_size[0]):
-            if 0 not in self.board[i]:
+            if (self.board[i] != 0).all():
                 for i_ in reversed(range(i)):
                     self.board[i_+1] = self.board[i_]
 
@@ -239,7 +168,7 @@ class Game(object):
         else:
             q_li = [pt[0]+1, pt[1]  , self.rot]
 
-        for ix in self.t4mino_li[self.cur, q_li[-1]]:
+        for ix in self.t4mino_li[self.cur][q_li[-1]]:
             if ix[0]+q_li[0] >= self.board_size[0]          \
             or ix[1]+q_li[1] < 0                            \
             or ix[1]+q_li[1] >= self.board_size[1]          \
@@ -252,7 +181,7 @@ class Game(object):
 
     def element(self, i: int, j: int) -> str:
 
-        ix_li = self.t4mino_li[self.cur, self.rot]
+        ix_li = self.t4mino_li[self.cur][self.rot]
         pt = self.pt
 
         for ix in ix_li:
@@ -270,7 +199,7 @@ class Game(object):
 
     def display(self):
 
-        ix_li = self.t4mino_li[self.cur, self.rot]
+        ix_li = self.t4mino_li[self.cur][self.rot]
         pt = self.pt
         for i in range(self.board_size[0]):
             print('{:>2}|'.format(i), end='')
@@ -292,7 +221,7 @@ class Game(object):
 
     def gen_t4mino(self):
 
-        self.cur_li.append(random.randrange(7))    # current tetrimino index
+        self.cur_li.append(np.random.randint(7))    # current tetrimino index
 
         self.cur = self.cur_li[0]
         self.set_pt_rot()
