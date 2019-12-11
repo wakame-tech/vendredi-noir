@@ -12,18 +12,6 @@ import numpy as np
 from functools import wraps
 
 
-class NdArrayJsonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super(NdArrayJsonEncoder, self).default(obj)
-
-
 sio = Client()
 handlers = {}
 
@@ -82,13 +70,13 @@ class Api:
         sio.connect(endpoint)
 
     def create_room(self, room_name):
-        print('[Create] %s' % room_name)
+        print(f'[Create] {room_name}')
         sio.emit('request_create_room', {"room_name": room_name})
 
     def join_room(self, room_name):
         """
         """
-        print('[Join] to %s' % room_name)
+        print(f'[Join] to {room_name}')
         sio.emit('request_join_room', {"room_name": room_name})
 
     def game_start(self, room_name):
@@ -107,5 +95,5 @@ class Api:
         """
         """
         print('[Update]')
-        payload = json.dumps(req, cls=NdArrayJsonEncoder)
+        payload = json.dumps(req)
         sio.emit('request_move', payload)
