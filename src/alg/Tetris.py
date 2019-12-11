@@ -66,7 +66,13 @@ class Board(object):
         return res[:-1]
 
 
+    def tolist(self):
 
+        return self.board
+
+
+
+# 本当は構造体にしたいけど、Pythonにはないから
 class Tetrimino(object):
 
     def __init__(self):

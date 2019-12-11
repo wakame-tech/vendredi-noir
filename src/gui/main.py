@@ -42,9 +42,9 @@ class MyLabel(QLabel):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
 
-    def set_bg_color(self, colorname: str=None):
+    def set_bg_color(self, colorname: str='#aaa'):
         
-        self.setStyleSheet(f'MyLabel{{background-color: {colorname if colorname is not None else "#aaa"}}}')
+        self.setStyleSheet(f'MyLabel{{background-color: {colorname}}}')
 
 
 
@@ -57,7 +57,7 @@ class TetrisWindow(QMainWindow, Api):
         super(Api, self).__init__()
         g = self.game = Game()
         self.color_dic = [
-            None,       # nothing, space
+            '#aaa',       # nothing, space
             'cyan',     # i
             'yellow',   # o
             'purple',   # t

@@ -126,21 +126,21 @@ class Gesture(object):
                 x, y, category = results[0]
                 # category 2 is Closed hand
                 if category == 2:
-                    text = 'R'
+                    text = 'f'
                 elif abs(x-_x) < eps and abs(y-_y) < eps_down:
-                    text = '.'
+                    text = ''
                 elif abs(x-_x) < abs(y-_y):
-                    text = 'v'
+                    text = 'k'
                 elif x > _x: # abs(x-_x) >= abs(y-_y)
-                    text = '>'
+                    text = 'l'
                 else: # x < _x
-                    text = '<'
+                    text = 'h'
 
                 _x, _y = x, y
 
             else:
                 x, y = _x, _y
-                text = '.'
+                text = ''
 
             pyautogui.press(text)
             if display_mode:
