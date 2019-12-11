@@ -10,6 +10,8 @@ git clone https://github.com/wakame-tech/vendredi-noir.git
 ## TetrisClient
 `W:10 x H:20`
 
+[さんこう](http://zetcode.com/gui/pyqt5/tetris/)
+
 ![block](https://livedoor.blogimg.jp/mkomiz/imgs/f/f/ff82b30d.gif)
 
 ## TetrisServer
@@ -44,7 +46,7 @@ schema from server
 git subtree push --prefix src/server/ heroku master
 ```
 
-deployed at [here](https://dashboard.heroku.com/apps/vendredi-noir) 🎉🎉🎉
+deployed at [here](https://vendredi-noir.herokuapp.com) 🎉🎉🎉
 
 
 ### ref
