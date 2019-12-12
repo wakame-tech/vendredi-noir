@@ -238,7 +238,7 @@ class TetrisWindow(QMainWindow, Api):
         self.send_state(state)
 
     def make_loser_image(self):
-        capture = cv2.VideoCapture(1)
+        capture = cv2.VideoCapture(0)
         ret, cv_img = capture.read()
         if ret is False:
             return
