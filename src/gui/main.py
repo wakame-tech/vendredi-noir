@@ -178,6 +178,7 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
+            QMessageBox.information(self, "勝敗", "You Lose...")
             exit() 
 
 
@@ -281,7 +282,7 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('game_ended')
     def game_ended(self, res):
-        print('game ended')
+        QMessageBox.information(self, "勝敗", "You Win!")
         sys.exit()
 
 
