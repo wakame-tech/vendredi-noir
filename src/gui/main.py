@@ -9,7 +9,7 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 """
 
 import sys
-import time
+from time import sleep
 import json
 import cv2
 import numpy as np
@@ -126,7 +126,14 @@ class TetrisWindow(QMainWindow, Api):
         self.show()
         g._pt, g._rot = [-1, -1], -1
 
-        self.connect_server()
+        while True:
+            try:
+                self.connect_server()
+            except socketio.exceptions.ConnectionError:
+                from traceback import print_exception; print_exception()
+                sleep(1)
+            else:
+                break
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
@@ -220,7 +227,7 @@ class TetrisWindow(QMainWindow, Api):
         if not g.yet():
             img = self.make_loser_image()
             vd = QMessageBox
-            vd.setIconPixmap(Qpixmap(img))
+            vd.setIconPixmap(QPixmap(img))
             vd.information(self, "勝敗", "You Lose...")
             exit() 
 
@@ -251,12 +258,12 @@ class TetrisWindow(QMainWindow, Api):
         if is_host:
             limit = 5
             print(f'matching {limit}s ...')
-            time.sleep(limit)
+            sleep(limit)
             self.game_start(room_name)
         else:
             while not self.started:
                 print(f'waiting start ... {self.started}')
-                time.sleep(1)
+                sleep(1)
 
 
     def send_board(self):
