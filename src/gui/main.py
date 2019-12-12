@@ -12,6 +12,8 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 import sys
 import time
 import json
+import cv2
+import datatime
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
@@ -212,7 +214,10 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
-            QMessageBox.information(self, "勝敗", "You Lose...")
+            img = self.make_loser_image()
+            vd = QMessageBox
+            vd.setIconPixmap(Qpixmap(img))
+            vd.information(self, "勝敗", "You Lose...")
             exit() 
 
 
@@ -278,6 +283,14 @@ class TetrisWindow(QMainWindow, Api):
         print('[Send]')
         self.send_state(state)
 
+    def make_loser_image(self):
+        ret, cv_img = self.capture.read()
+        if ret is False:
+            return
+        cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        proc = self.game.board / 7
+        cv_img = cv_img * proc
+        return cv_img
 
     @event('connected')
     def connected(self):
