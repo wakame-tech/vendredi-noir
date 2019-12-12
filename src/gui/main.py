@@ -48,7 +48,6 @@ class MyFrame(QFrame):
             0x00ff00,   # s, green
             0xff0000    # t, red
         ]
-        self.rect_len = 25
         self.board_size = [20, 10]
         self.part_board = Board(self.board_size)
 
@@ -64,23 +63,26 @@ class MyFrame(QFrame):
         self.update()
 
 
+
     def draw_square(self, i: int, j: int):
 
+        rect_h = self.contentsRect().height() / self.board_size[0]
+        rect_w = self.contentsRect().width() / self.board_size[1]
+
         painter = QPainter(self)
-        rect_len = self.rect_len
 
         color = QColor(self.color_dic[self.part_board[i, j]])
-        i *= rect_len
-        j *= rect_len
-        painter.fillRect(j+1, i+1, j+rect_len-2, i+rect_len-2, color)
+        i *= rect_h
+        j *= rect_w
+        painter.fillRect(j+1, i+1, j+rect_w-2, i+rect_h-2, color)
 
         painter.setPen(color.lighter())
-        painter.drawLine(j, i+rect_len-1, j, i)
-        painter.drawLine(j, i, j+rect_len-2, i)
+        painter.drawLine(j, i+rect_h-1, j, i)
+        painter.drawLine(j, i, j+rect_w-2, i)
 
         painter.setPen(color.darker())
-        painter.drawLine(j+1, i+rect_len-1, j+rect_len-1, i+rect_len-1)
-        painter.drawLine(j+rect_len-1, i+rect_len-1, j+rect_len-1, i+1)
+        painter.drawLine(j+1, i+rect_h-1, j+rect_w-1, i+rect_h-1)
+        painter.drawLine(j+rect_w-1, i+rect_h-1, j+rect_w-1, i+1)
 
 
     def update_board(self, fn):
