@@ -243,7 +243,8 @@ class TetrisWindow(QMainWindow, Api):
         if ret is False:
             return
         cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        proc = self.game.board / 7
+        a = np.array(self.game.board)
+        proc = a / 7
         cv_img = cv_img * proc
         return cv_img
 
