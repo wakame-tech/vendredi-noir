@@ -47,9 +47,7 @@ class MyLabel(QLabel):
     def set_bg_color(self, colorname: str=None):
         
         self.setStyleSheet(f'background: {"#aaa" if colorname is None else colorname}')
-        #palette = QPalette()
-        #palette.setColor(self.backgroundRole(), Qt.yellow)
-        #self.setPalette(palette);
+
 
 
 class TetrisWindow(QMainWindow, Api):
