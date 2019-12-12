@@ -12,6 +12,10 @@ import sys
 import time
 import json
 import cv2
+<<<<<<< HEAD
+=======
+import numpy as np
+>>>>>>> 73d5be5523e974b45801449ff30585e014034be6
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
@@ -20,7 +24,11 @@ from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
+<<<<<<< HEAD
     QKeySequence, QPainter, QColor
+=======
+    QKeySequence, QPalette, QColor, QPixmap, QImage
+>>>>>>> 73d5be5523e974b45801449ff30585e014034be6
 )
 
 from PyQt5.QtCore import(
@@ -110,6 +118,13 @@ class TetrisWindow(QMainWindow, Api):
         ]
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
+        img = self.make_loser_image()
+        h, w, c = img.shape
+        bytesPerLine = 3 * w
+        qimg = QImage(img.data, w, h, bytesPerLine, QImage.Format_RGB888)
+        vd = QMessageBox()
+        vd.setIconPixmap(QPixmap(qimg))
+        vd.information(self, "勝敗", "You Lose...")
 
         self.show()
         g._pt, g._rot = [-1, -1], -1
@@ -250,12 +265,17 @@ class TetrisWindow(QMainWindow, Api):
         self.send_state(state)
 
     def make_loser_image(self):
-        ret, cv_img = self.capture.read()
+        g = self.game
+        capture = cv2.VideoCapture(0)
+        ret, cv_img = capture.read()
         if ret is False:
             return
         cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        proc = self.game.board / 7
-        cv_img = cv_img * proc
+        a = np.array(g.board.board)
+        proc = a / 7
+        # cv_img[:,:,0] = cv_img[:,:,0] * proc
+        # cv_img[:,:,1] = cv_img[:,:,1] * proc
+        # cv_img[:,:,2] = cv_img[:,:,2] * proc
         return cv_img
 
     @event('connected')
