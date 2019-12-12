@@ -66,9 +66,26 @@ class Board(object):
         return res[:-1]
 
 
+    def list2board(self):
+        print('YES')
+        pass
+
+
     def tolist(self):
 
         return self.board
+
+
+
+def list2board(board_li: list) -> Board:
+
+    size = [20, 10]
+    board = Board(size)
+    for i in range(size[0]):
+        for j in range(size[1]):
+            board[i][j] = board_li[i][j]
+
+    return board
 
 
 
@@ -253,6 +270,7 @@ class Game(object):
                 return False
 
         pt[0], pt[1], self.rot = q_li
+
         return True
 
 
