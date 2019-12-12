@@ -71,11 +71,6 @@ class Board(object):
         pass
 
 
-    def tolist(self):
-
-        return self.board
-
-
 
 def list2board(board_li: list) -> Board:
 

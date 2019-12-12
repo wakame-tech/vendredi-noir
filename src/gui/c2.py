@@ -12,6 +12,7 @@ import sys
 import time
 import json
 import cv2
+import numpy as np
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
@@ -20,7 +21,7 @@ from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
-    QKeySequence, QPainter, QColor
+    QKeySequence, QPainter, QColor, QPixmap, QImage
 )
 
 from PyQt5.QtCore import(
@@ -47,16 +48,17 @@ class MyFrame(QFrame):
             0x00ff00,   # s, green
             0xff0000    # t, red
         ]
-        self.part_board = Board([20, 10])
-        self.setGeometry(QRect(0, 0, 200, 400))
+        self.rect_len = 25
+        self.board_size = [20, 10]
+        self.part_board = Board(self.board_size)
 
 
     def paintEvent(self, event):
 
         rect = self.contentsRect()
 
-        for i in range(20):
-            for j in range(10):
+        for i in range(self.board_size[0]):
+            for j in range(self.board_size[1]):
                 self.draw_square(i, j)
 
         self.update()
@@ -65,25 +67,26 @@ class MyFrame(QFrame):
     def draw_square(self, i: int, j: int):
 
         painter = QPainter(self)
+        rect_len = self.rect_len
 
         color = QColor(self.color_dic[self.part_board[i, j]])
-        i *= 20
-        j *= 20
-        painter.fillRect(j+1, i+1, j+20-2, i+20-2, color)
+        i *= rect_len
+        j *= rect_len
+        painter.fillRect(j+1, i+1, j+rect_len-2, i+rect_len-2, color)
 
         painter.setPen(color.lighter())
-        painter.drawLine(j, i+20-1, j, i)
-        painter.drawLine(j, i, j+20-2, i)
+        painter.drawLine(j, i+rect_len-1, j, i)
+        painter.drawLine(j, i, j+rect_len-2, i)
 
         painter.setPen(color.darker())
-        painter.drawLine(j+1, i+20-1, j+20-1, i+20-1)
-        painter.drawLine(j+20-1, i+20-1, j+20-1, i+1)
+        painter.drawLine(j+1, i+rect_len-1, j+rect_len-1, i+rect_len-1)
+        painter.drawLine(j+rect_len-1, i+rect_len-1, j+rect_len-1, i+1)
 
 
     def update_board(self, fn):
 
-        for i in range(20):
-            for j in range(10):
+        for i in range(self.board_size[0]):
+            for j in range(self.board_size[1]):
                 self.part_board[i, j] = fn(i, j)
 
         self.update()
@@ -110,6 +113,13 @@ class TetrisWindow(QMainWindow, Api):
         ]
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
+        img = self.make_loser_image()
+        h, w, c = img.shape
+        bytesPerLine = 3 * w
+        qimg = QImage(img.data, w, h, bytesPerLine, QImage.Format_RGB888)
+        vd = QMessageBox()
+        vd.setIconPixmap(QPixmap(qimg))
+        vd.information(self, "勝敗", "You Lose...")
 
         self.show()
         g._pt, g._rot = [-1, -1], -1
@@ -143,32 +153,37 @@ class TetrisWindow(QMainWindow, Api):
     def init_game_board(self):
         # ゲームボードを構築する。
 
-        box1 = QHBoxLayout()
+        mainLayout = QHBoxLayout()
+        yourVbox = QVBoxLayout()            # youが追加されるLayout
         sidebox = QVBoxLayout(spacing=50)
-        box2 = QHBoxLayout()
+        oppoVbox = QVBoxLayout()
 
         # Playerのゲームボード
-        v1box = QVBoxLayout(spacing=1)
-        player1_label = QLabel('You')
-        player1_label.setGeometry(QRect(0, 0, 250, 12))
-        v1box.addWidget(player1_label)
+        yourHbox1 = QHBoxLayout(spacing=1)  # Labelが追加されるbox
+        yourHbox2 = QHBoxLayout(spacing=1)  # boardが描画されるbox
+        yourLabel = QLabel('You')
+        yourHbox1.addWidget(yourLabel)
         self.your_fr = MyFrame()
-        v1box.addWidget(self.your_fr)
+        yourHbox2.addWidget(self.your_fr)
+        yourVbox.addLayout(yourHbox1, 1)
+        yourVbox.addLayout(yourHbox2, 5)
 
         # 対戦相手のゲームボード
-        v2box = QVBoxLayout(spacing=1)
-        player2_label = QLabel('Opponent')
-        player2_label.setGeometry(QRect(0, 0, 250, 12))
-        v2box.addWidget(player2_label)
+        oppoHbox1 = QHBoxLayout(spacing=1)  # Labelが追加されるbox
+        oppoHbox2 = QHBoxLayout(spacing=1)  # boardが描画されるbox
+        oppoLabel = QLabel('Opponent')
+        oppoHbox1.addWidget(oppoLabel)
         self.oppo_fr = MyFrame()
-        v2box.addWidget(self.oppo_fr)
+        oppoHbox2.addWidget(self.oppo_fr)
+        oppoVbox.addLayout(oppoHbox1, 1)
+        oppoVbox.addLayout(oppoHbox2, 5)
 
-        box1.addLayout(v1box)
-        box1.addLayout(sidebox)
-        box2.addLayout(box1)
-        box2.addLayout(v2box)
+
+        mainLayout.addLayout(yourVbox)
+        mainLayout.addLayout(sidebox)
+        mainLayout.addLayout(oppoVbox)
         container = QWidget()
-        container.setLayout(box2)
+        container.setLayout(mainLayout)
         self.setCentralWidget(container)
 
 
@@ -212,7 +227,7 @@ class TetrisWindow(QMainWindow, Api):
         
         g = self.game
         state = {
-            'board'     : g.board.tolist(),
+            'board'     : g.board.board,
             'cur'       : g.cur,
             'cur_li'    : g.cur_li,
             'board_size': g.board_size
@@ -250,12 +265,17 @@ class TetrisWindow(QMainWindow, Api):
         self.send_state(state)
 
     def make_loser_image(self):
-        ret, cv_img = self.capture.read()
+        g = self.game
+        capture = cv2.VideoCapture(0)
+        ret, cv_img = capture.read()
         if ret is False:
             return
         cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        proc = self.game.board / 7
-        cv_img = cv_img * proc
+        a = np.array(g.board.board)
+        proc = a / 7
+        # cv_img[:,:,0] = cv_img[:,:,0] * proc
+        # cv_img[:,:,1] = cv_img[:,:,1] * proc
+        # cv_img[:,:,2] = cv_img[:,:,2] * proc
         return cv_img
 
     @event('connected')
