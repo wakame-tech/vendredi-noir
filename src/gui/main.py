@@ -12,7 +12,6 @@ import sys
 import time
 import json
 import cv2
-import datatime
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
@@ -239,7 +238,8 @@ class TetrisWindow(QMainWindow, Api):
         self.send_state(state)
 
     def make_loser_image(self):
-        ret, cv_img = self.capture.read()
+        capture = cv2.VideoCapture(1)
+        ret, cv_img = capture.read()
         if ret is False:
             return
         cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
