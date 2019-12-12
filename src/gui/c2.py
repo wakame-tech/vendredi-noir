@@ -2,7 +2,6 @@
 #!/usr/bin/env python3.8
 """
 Created on Sun Dic  8 16:30:35 2019
-
 テトリスGUI部分
 URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 @author: n_toba
@@ -17,7 +16,7 @@ sys.path.append('../alg')
 from os.path import abspath
 from Tetris import Game, list2board
 from PyQt5.QtWidgets import(
-    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction
+    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
     QKeySequence, QPalette, QColor
@@ -33,21 +32,18 @@ ENDPOINT = 'https://vendredi-noir.herokuapp.com'
 # TODO
 global started
 
-class MyLabel(QLabel):
 
+class MyFrame(QFrame):
+    
     def __init__(self, parent):
 
-        super(MyLabel, self).__init__(parent)
-        self.parent = parent
-        self.setMinimumSize(7, 7)
-        self.setMaximumSize(25, 25)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        super().__init__(parent)
+        self.game = parent.game
 
 
-    def set_bg_color(self, colorname: str=None):
-        
-        self.setStyleSheet(f'background: {"#aaa" if colorname is None else colorname}')
+    def update_status(self):
 
+        print(self.game.board)
 
 
 class TetrisWindow(QMainWindow, Api):
@@ -99,8 +95,6 @@ class TetrisWindow(QMainWindow, Api):
         self.statusBar().showMessage('h: 左, l: 右, f: 右回転, a: 左回転')  # ステータスバーに文言を表示
         self.init_game_board()
 
-        self.update_next_label()
-
 
     def init_game_board(self):
         # ゲームボードを構築する。
@@ -113,64 +107,16 @@ class TetrisWindow(QMainWindow, Api):
         v1box = QVBoxLayout(spacing=1)
         player1_label = QLabel('You')
         v1box.addWidget(player1_label)
-        self.label_dic = {}
-        for i in self.size_li_rg[0]:
-            h1box = QHBoxLayout()
-            for j in self.size_li_rg[1]:
-                label = MyLabel(self)
-                label.set_bg_color()
-
-                # label と関数をつなげる。
-                self.label_dic[i, j] = label
-                h1box.addWidget(label)
-            v1box.addLayout(h1box)
-
-        # 次のミノを表示するスペース
-        nextbox = QVBoxLayout(spacing=1)
-        next_label = QLabel('Next mino')
-        nextbox.addWidget(next_label)
-        self.next_label_dic = {}
-        for i in range(4):
-            nexthbox = QHBoxLayout()
-            for j in range(4):
-                label = MyLabel(self)
-                label.set_bg_color()
-
-                # label と関数をつなげる。
-                self.next_label_dic[i, j] = label
-                nexthbox.addWidget(label)
-            nextbox.addLayout(nexthbox)
-
-        # Hold中のミノを表示するスペース
-        holdbox = QVBoxLayout(spacing=1)
-        hold_label = QLabel('Holding mino')
-        holdbox.addWidget(hold_label)
-        for i in range(4):
-            holdhbox = QHBoxLayout()
-            for j in range(4):
-                label = MyLabel(self)
-                label.set_bg_color()
-                holdhbox.addWidget(label)
-            holdbox.addLayout(holdhbox)
+        self.your_fr = MyFrame(self)
+        v1box.addWidget(self.your_fr)#TODO
 
         # 対戦相手のゲームボード
         v2box = QVBoxLayout(spacing=1)
         player2_label = QLabel('Opponent')
         v2box.addWidget(player2_label)
-        self.opponent_label_dic = {}
-        for i in self.size_li_rg[0]:
-            h2box = QHBoxLayout()
-            for j in self.size_li_rg[1]:
-                label = MyLabel(self)
-                label.set_bg_color()
+        self.oppo_fr = MyFrame(self)
+        v2box.addWidget(self.oppo_fr)#TODO
 
-                # label と関数をつなげる。
-                self.opponent_label_dic[i, j] = label
-                h2box.addWidget(label)
-            v2box.addLayout(h2box)
-
-        sidebox.addLayout(nextbox)
-        sidebox.addLayout(holdbox)
         box1.addLayout(v1box)
         box1.addLayout(sidebox)
         box2.addLayout(box1)
@@ -191,7 +137,7 @@ class TetrisWindow(QMainWindow, Api):
                 exit()
 
             g.move(key.lower())
-            self.update_board()
+            self.your_fr.update_status()
 
             super(TetrisWindow, self).keyPressEvent(event)
 
@@ -200,37 +146,16 @@ class TetrisWindow(QMainWindow, Api):
 
         g = self.game
         g.move()
-        self.update_board()
+        self.your_fr.update_status()
         self.send_board()
         if g._pt == g.pt and g._rot == g.rot:
             g.save_board()
             g.update_cur_li()
             g.gen_t4mino()
-            self.update_next_label()
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
             exit() 
-
-
-    def update_board(self):
-
-        g = self.game
-        for i in self.size_li_rg[0]:
-            for j in self.size_li_rg[1]:
-                label = self.label_dic[i, j]
-                label.set_bg_color(self.color_dic[g.element(i, j)])
-
-
-    def update_next_label(self):
-
-        g = self.game
-        next_ = g.cur_li[1]
-        next_tetrimino = g.t4mino_li[next_, 0]
-        for i in range(4):
-            for j in range(4):
-                label = self.next_label_dic[i, j]
-                label.set_bg_color(self.color_dic[next_ + 1] if [i, j] in next_tetrimino else None)
 
 
     def get_state(self) -> {str: object}:
@@ -293,10 +218,7 @@ class TetrisWindow(QMainWindow, Api):
         board = list2board(state['board'])
 
         # reflect to board
-        for i in range(height):
-            for j in range(width):
-                label = self.opponent_label_dic[i, j]
-                label.set_bg_color(self.color_dic[board[i, j]])
+        self.oppo_fr.update_status()
 
 
     @event('disconnected')

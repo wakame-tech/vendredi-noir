@@ -21,6 +21,7 @@ class Test(QWidget):
 
         app.exec_()
 
+
     def init_ui(self):
         self.setWindowTitle("PyQt5")
         self.resize(640, 400)
@@ -32,6 +33,7 @@ class Test(QWidget):
                         )
         self.x = 0
         self.y =200
+
 
     def paintEvent(self, QPaintEvent):
         painter = QPainter(self)
