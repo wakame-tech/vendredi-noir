@@ -12,45 +12,82 @@ import sys
 import time
 import json
 import cv2
-import datatime
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
-from Tetris import Game, list2board
+from Tetris import Game, Board, list2board
 from PyQt5.QtWidgets import(
-    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction
+    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
-    QKeySequence, QPalette, QColor
+    QKeySequence, QPainter, QColor
 )
 
 from PyQt5.QtCore import(
-    QTimer, Qt
+    QTimer, Qt, QRect
 )
 
 ENDPOINT = 'https://vendredi-noir.herokuapp.com'
 # ENDPOINT = 'http://localhost:5000'
 
-# TODO
-global started
 
-class MyLabel(QLabel):
+class MyFrame(QFrame):
 
-    def __init__(self, parent):
+    def __init__(self):
 
-        super(MyLabel, self).__init__(parent)
-        self.parent = parent
-        self.setMinimumSize(7, 7)
-        self.setMaximumSize(25, 25)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        super().__init__()
+
+        self.color_dic = [
+            0x808080,   # nothing, space
+            0x00ffff,   # i, cyan
+            0xffff00,   # o, yellow
+            0xff00ff,   # t, purple
+            0x0000ff,   # j, blue
+            0xff8000,   # l, orange
+            0x00ff00,   # s, green
+            0xff0000    # t, red
+        ]
+        self.part_board = Board([20, 10])
+        self.setGeometry(QRect(0, 0, 200, 400))
 
 
-    def set_bg_color(self, colorname: str=None):
-        
-        self.setStyleSheet(f'background: {"#aaa" if colorname is None else colorname}')
-        #palette = QPalette()
-        #palette.setColor(self.backgroundRole(), Qt.yellow)
-        #self.setPalette(palette);
+    def paintEvent(self, event):
+
+        rect = self.contentsRect()
+
+        for i in range(20):
+            for j in range(10):
+                self.draw_square(i, j)
+
+        self.update()
+
+
+    def draw_square(self, i: int, j: int):
+
+        painter = QPainter(self)
+
+        color = QColor(self.color_dic[self.part_board[i, j]])
+        i *= 20
+        j *= 20
+        painter.fillRect(j+1, i+1, j+20-2, i+20-2, color)
+
+        painter.setPen(color.lighter())
+        painter.drawLine(j, i+20-1, j, i)
+        painter.drawLine(j, i, j+20-2, i)
+
+        painter.setPen(color.darker())
+        painter.drawLine(j+1, i+20-1, j+20-1, i+20-1)
+        painter.drawLine(j+20-1, i+20-1, j+20-1, i+1)
+
+
+    def update_board(self, fn):
+
+        for i in range(20):
+            for j in range(10):
+                self.part_board[i, j] = fn(i, j)
+
+        self.update()
+
 
 
 class TetrisWindow(QMainWindow, Api):
@@ -89,7 +126,7 @@ class TetrisWindow(QMainWindow, Api):
 
     def initUI(self):
         """ UIの初期化 """
-        self.resize(750, 500)
+        self.resize(750, 1000)
         self.setWindowTitle('Tetris')
 
         # 終了ボタン
@@ -113,34 +150,18 @@ class TetrisWindow(QMainWindow, Api):
         # Playerのゲームボード
         v1box = QVBoxLayout(spacing=1)
         player1_label = QLabel('You')
+        player1_label.setGeometry(QRect(0, 0, 250, 12))
         v1box.addWidget(player1_label)
-        self.label_dic = {}
-        for i in self.size_li_rg[0]:
-            h1box = QHBoxLayout()
-            for j in self.size_li_rg[1]:
-                label = MyLabel(self)
-                label.set_bg_color()
-
-                # label と関数をつなげる。
-                self.label_dic[i, j] = label
-                h1box.addWidget(label)
-            v1box.addLayout(h1box)
+        self.your_fr = MyFrame()
+        v1box.addWidget(self.your_fr)
 
         # 対戦相手のゲームボード
         v2box = QVBoxLayout(spacing=1)
         player2_label = QLabel('Opponent')
+        player2_label.setGeometry(QRect(0, 0, 250, 12))
         v2box.addWidget(player2_label)
-        self.opponent_label_dic = {}
-        for i in self.size_li_rg[0]:
-            h2box = QHBoxLayout()
-            for j in self.size_li_rg[1]:
-                label = MyLabel(self)
-                label.set_bg_color()
-
-                # label と関数をつなげる。
-                self.opponent_label_dic[i, j] = label
-                h2box.addWidget(label)
-            v2box.addLayout(h2box)
+        self.oppo_fr = MyFrame()
+        v2box.addWidget(self.oppo_fr)
 
         box1.addLayout(v1box)
         box1.addLayout(sidebox)
@@ -162,7 +183,7 @@ class TetrisWindow(QMainWindow, Api):
                 exit()
 
             g.move(key.lower())
-            self.update_board()
+            self.your_fr.update_board(lambda i, j: g.element(i, j))
 
             super(TetrisWindow, self).keyPressEvent(event)
 
@@ -171,7 +192,7 @@ class TetrisWindow(QMainWindow, Api):
 
         g = self.game
         g.move()
-        self.update_board()
+        self.your_fr.update_board(lambda i, j: g.element(i, j))
         self.send_board()
         if g._pt == g.pt and g._rot == g.rot:
             g.save_board()
@@ -185,15 +206,6 @@ class TetrisWindow(QMainWindow, Api):
             vd.setIconPixmap(Qpixmap(img))
             vd.information(self, "勝敗", "You Lose...")
             exit() 
-
-
-    def update_board(self):
-
-        g = self.game
-        for i in self.size_li_rg[0]:
-            for j in self.size_li_rg[1]:
-                label = self.label_dic[i, j]
-                label.set_bg_color(self.color_dic[g.element(i, j)])
 
 
     def get_state(self) -> {str: object}:
@@ -213,8 +225,7 @@ class TetrisWindow(QMainWindow, Api):
         self.connect(ENDPOINT)
         is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
         room_name = 'AAA'
-        global started
-        started = False
+        self.started = False
         if is_host:
             self.create_room(room_name)
         else:
@@ -226,8 +237,8 @@ class TetrisWindow(QMainWindow, Api):
             time.sleep(limit)
             self.game_start(room_name)
         else:
-            while not started:
-                print(f'waiting start ... {started}')
+            while not self.started:
+                print(f'waiting start ... {self.started}')
                 time.sleep(1)
 
 
@@ -264,10 +275,7 @@ class TetrisWindow(QMainWindow, Api):
         board = list2board(state['board'])
 
         # reflect to board
-        for i in range(height):
-            for j in range(width):
-                label = self.opponent_label_dic[i, j]
-                label.set_bg_color(self.color_dic[board[i, j]])
+        self.oppo_fr.update_board(lambda i, j: board[i, j])
 
 
     @event('disconnected')
@@ -289,8 +297,7 @@ class TetrisWindow(QMainWindow, Api):
     @event('game_started')
     def game_started(self, res):
         print('game started')
-        global started
-        started = True
+        self.started = True
 
 
     @event('game_ended')

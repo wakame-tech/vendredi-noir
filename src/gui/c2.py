@@ -11,19 +11,20 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 import sys
 import time
 import json
+import cv2
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
-from Tetris import Game, list2board
+from Tetris import Game, Board, list2board
 from PyQt5.QtWidgets import(
-    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QAction, QFrame
+    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
     QKeySequence, QPainter, QColor
 )
 
 from PyQt5.QtCore import(
-    QTimer, Qt
+    QTimer, Qt, QRect
 )
 
 ENDPOINT = 'https://vendredi-noir.herokuapp.com'
@@ -31,12 +32,11 @@ ENDPOINT = 'https://vendredi-noir.herokuapp.com'
 
 
 class MyFrame(QFrame):
-    
-    def __init__(self, parent):
 
-        super().__init__(parent)
-        self.board_size = parent.board_size
-        self.game = parent.game
+    def __init__(self):
+
+        super().__init__()
+
         self.color_dic = [
             0x808080,   # nothing, space
             0x00ffff,   # i, cyan
@@ -47,6 +47,8 @@ class MyFrame(QFrame):
             0x00ff00,   # s, green
             0xff0000    # t, red
         ]
+        self.part_board = Board([20, 10])
+        self.setGeometry(QRect(0, 0, 200, 400))
 
 
     def paintEvent(self, event):
@@ -57,13 +59,14 @@ class MyFrame(QFrame):
             for j in range(10):
                 self.draw_square(i, j)
 
+        self.update()
+
 
     def draw_square(self, i: int, j: int):
 
         painter = QPainter(self)
-        g = self.game
 
-        color = QColor(self.color_dic[g.board[i, j]])
+        color = QColor(self.color_dic[self.part_board[i, j]])
         i *= 20
         j *= 20
         painter.fillRect(j+1, i+1, j+20-2, i+20-2, color)
@@ -77,9 +80,13 @@ class MyFrame(QFrame):
         painter.drawLine(j+20-1, i+20-1, j+20-1, i+1)
 
 
-    def update_status(self):
+    def update_board(self, fn):
 
-        pass
+        for i in range(20):
+            for j in range(10):
+                self.part_board[i, j] = fn(i, j)
+
+        self.update()
 
 
 
@@ -91,6 +98,16 @@ class TetrisWindow(QMainWindow, Api):
         super(TetrisWindow, self).__init__()
         super(Api, self).__init__()
         g = self.game = Game()
+        self.color_dic = [
+            '#aaa',       # nothing, space
+            'cyan',     # i
+            'yellow',   # o
+            'purple',   # t
+            'blue',     # j
+            'orange',   # l
+            'green',    # s
+            'red'       # t
+        ]
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
 
@@ -109,7 +126,7 @@ class TetrisWindow(QMainWindow, Api):
 
     def initUI(self):
         """ UIの初期化 """
-        self.resize(750, 750)
+        self.resize(750, 1000)
         self.setWindowTitle('Tetris')
 
         # 終了ボタン
@@ -133,16 +150,18 @@ class TetrisWindow(QMainWindow, Api):
         # Playerのゲームボード
         v1box = QVBoxLayout(spacing=1)
         player1_label = QLabel('You')
+        player1_label.setGeometry(QRect(0, 0, 250, 12))
         v1box.addWidget(player1_label)
-        self.your_fr = MyFrame(self)
-        v1box.addWidget(self.your_fr)#TODO
+        self.your_fr = MyFrame()
+        v1box.addWidget(self.your_fr)
 
         # 対戦相手のゲームボード
         v2box = QVBoxLayout(spacing=1)
         player2_label = QLabel('Opponent')
+        player2_label.setGeometry(QRect(0, 0, 250, 12))
         v2box.addWidget(player2_label)
-        self.oppo_fr = MyFrame(self)
-        v2box.addWidget(self.oppo_fr)#TODO
+        self.oppo_fr = MyFrame()
+        v2box.addWidget(self.oppo_fr)
 
         box1.addLayout(v1box)
         box1.addLayout(sidebox)
@@ -164,7 +183,7 @@ class TetrisWindow(QMainWindow, Api):
                 exit()
 
             g.move(key.lower())
-            self.your_fr.update_status()
+            self.your_fr.update_board(lambda i, j: g.element(i, j))
 
             super(TetrisWindow, self).keyPressEvent(event)
 
@@ -173,7 +192,7 @@ class TetrisWindow(QMainWindow, Api):
 
         g = self.game
         g.move()
-        self.your_fr.update_status()
+        self.your_fr.update_board(lambda i, j: g.element(i, j))
         self.send_board()
         if g._pt == g.pt and g._rot == g.rot:
             g.save_board()
@@ -182,6 +201,10 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
+            img = self.make_loser_image()
+            vd = QMessageBox
+            vd.setIconPixmap(Qpixmap(img))
+            vd.information(self, "勝敗", "You Lose...")
             exit() 
 
 
@@ -226,6 +249,14 @@ class TetrisWindow(QMainWindow, Api):
         print('[Send]')
         self.send_state(state)
 
+    def make_loser_image(self):
+        ret, cv_img = self.capture.read()
+        if ret is False:
+            return
+        cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        proc = self.game.board / 7
+        cv_img = cv_img * proc
+        return cv_img
 
     @event('connected')
     def connected(self):
@@ -244,7 +275,7 @@ class TetrisWindow(QMainWindow, Api):
         board = list2board(state['board'])
 
         # reflect to board
-        self.oppo_fr.update_status()
+        self.oppo_fr.update_board(lambda i, j: board[i, j])
 
 
     @event('disconnected')
@@ -271,7 +302,7 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('game_ended')
     def game_ended(self, res):
-        print('game ended')
+        QMessageBox.information(self, "勝敗", "You Win!")
         sys.exit()
 
 
