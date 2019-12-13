@@ -38,7 +38,8 @@ def on_create_room(req):
     room_name = req['room_name']
     join_room(room_name)
     logger.info('create room %s' % room_of(request.sid))
-    emit('response_create_room', {'room_name': room_name}, room=room_name)
+    emit('response_create_room', {
+         'room_name': room_name, 'id': request.sid}, room=room_name)
 
 
 @socketio.on('request_join_room')
@@ -46,7 +47,8 @@ def on_join_room(req):
     room_name = req['room_name']
     join_room(room_name)
     logger.info('join %s to %s' % (request.sid, room_of(request.sid)))
-    emit('response_join_room', {'room_name': room_name}, room=room_name)
+    emit('response_join_room', {
+         'room_name': room_name, 'id': request.sid}, room=room_name)
 
 
 @socketio.on('request_game_start')
@@ -67,7 +69,7 @@ def on_game_end(req):
 def on_move(req):
     room_name = room_of(request.sid)
     # print_board(req)
-    emit('response_board', req, broadcast=True)  # , room=room_name)
+    emit('response_board', req, room=room_name)
 
 
 @socketio.on('disconnect')

@@ -48,6 +48,8 @@ class MyFrame(QFrame):
             0x00ff00,   # s, green
             0xff0000    # t, red
         ]
+        # 待ち時間[s]
+        self.matching_seconds = 10
         self.board_size = [20, 10]
         self.part_board = Board(self.board_size)
 
@@ -99,6 +101,7 @@ class TetrisWindow(QMainWindow, Api):
 
     def __init__(self):
         app = QApplication(sys.argv)
+        self.debugging = False
         print('RUNNING PROGRAMME')
         super(TetrisWindow, self).__init__()
         super(Api, self).__init__()
@@ -118,10 +121,15 @@ class TetrisWindow(QMainWindow, Api):
         img = self.make_loser_image()
         h, w, c = img.shape
         bytesPerLine = 3 * w
-        qimg = QImage(img.data, w, h, bytesPerLine, QImage.Format_RGB888)
-        vd = QMessageBox()
-        vd.setIconPixmap(QPixmap(qimg))
-        vd.information(self, "勝敗", "You Lose...")
+        # qimg = QImage(img.data, w, h, bytesPerLine, QImage.Format_RGB888)
+        # vd = QMessageBox()
+        # vd.setIconPixmap(QPixmap(qimg))
+        # vd.information(self, "勝敗", "You Lose...")
+
+        # python main.py --join で 部屋に参加する
+        self.is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
+        # 部屋名(固定)
+        self.room_name = 'AAA'
 
         self.show()
         g._pt, g._rot = [-1, -1], -1
@@ -246,31 +254,24 @@ class TetrisWindow(QMainWindow, Api):
 
     def connect_server(self):
         # TODO: refactoring
-        self.connect(ENDPOINT)
-        is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
-        room_name = 'AAA'
         self.started = False
-        if is_host:
-            self.create_room(room_name)
-        else:
-            self.join_room(room_name)
+        self.connect(ENDPOINT)
 
-        if is_host:
-            limit = 5
-            print(f'matching {limit}s ...')
+        if self.is_host:
+            self.create_room(self.room_name)
+            self.matching_seconds
+            print(f'matching {self.ma}s ...')
             sleep(limit)
             self.game_start(room_name)
         else:
+            self.join_room(room_name)
+            print('start waiting ...')
             while not self.started:
-                print(f'waiting start ... {self.started}')
                 sleep(1)
-
 
     def send_board(self):
 
         state = self.get_state()
-
-        print('[Send]')
         self.send_state(state)
 
     def make_loser_image(self):
@@ -294,12 +295,10 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('updated')
     def sync_status(self, state):
-        # mirroring for debug ---------
-        g = self.game
-        state = json.loads(json.dumps(self.get_state()))
-        # -----------------------------
+        if self.debugging:
+            # mirroring
+            state = json.loads(json.dumps(self.get_state()))
 
-        print('[Recv]')
         [height, width] = state['board_size']
         board = list2board(state['board'])
 
@@ -315,22 +314,23 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('room_created')
     def room_created(self, res):
-        print('created')
+        print(f'[info] created {res['room_name']} by {res['id']}')
 
 
     @event('room_joined')
     def room_joined(self, res):
-        print('joined')
+        print(f'[info] joined {res['room_name']} by {res['id']}')
 
 
     @event('game_started')
     def game_started(self, res):
-        print('game started')
+        print('[info] game started')
         self.started = True
 
 
     @event('game_ended')
     def game_ended(self, res):
+        print('[info] game ended')
         QMessageBox.information(self, "勝敗", "You Win!")
         sys.exit()
 

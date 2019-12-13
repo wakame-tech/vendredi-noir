@@ -3,6 +3,11 @@ import numpy as np
 import base64
 import json
 
+"""
+画像 <-> json スクリプト例
+@author: wakame-tech
+"""
+
 def im2json(filename):
     with open(filename, 'rb') as f:
         raw = base64.b64encode(f.read())
@@ -19,7 +24,7 @@ def json2im(j):
 
     return src
 
-j = im2json('firefox.png')
+j = im2json('path/to/image')
 im = json2im(j)
 cv2.imshow('result', im)
 cv2.waitKey(0)
