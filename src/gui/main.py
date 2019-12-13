@@ -19,14 +19,14 @@ sys.path.append('../alg')
 from os.path import abspath
 from Tetris import Game, Board, list2board
 from PyQt5.QtWidgets import(
-    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QSizePolicy, QWidget, QMessageBox, QAction, QFrame
+    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
     QKeySequence, QPainter, QColor, QPixmap, QImage
 )
 
 from PyQt5.QtCore import(
-    QTimer, Qt, QRect
+    QTimer
 )
 
 ENDPOINT = 'https://vendredi-noir.herokuapp.com'
