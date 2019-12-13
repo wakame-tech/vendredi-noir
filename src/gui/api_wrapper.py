@@ -67,6 +67,10 @@ class Api:
                 payload = json.loads(res)
                 handlers['updated'](self, payload)
 
+    @property
+    def socketid(self):
+        return sio.sid
+
     def connect(self, endpoint):
         sio.connect(endpoint)
 

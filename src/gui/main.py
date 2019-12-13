@@ -13,6 +13,7 @@ from time import sleep
 import json
 import cv2
 import numpy as np
+from socketio.exceptions import ConnectionError
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
@@ -48,8 +49,6 @@ class MyFrame(QFrame):
             0x00ff00,   # s, green
             0xff0000    # t, red
         ]
-        # 待ち時間[s]
-        self.matching_seconds = 10
         self.board_size = [20, 10]
         self.part_board = Board(self.board_size)
 
@@ -128,6 +127,8 @@ class TetrisWindow(QMainWindow, Api):
 
         # python main.py --join で 部屋に参加する
         self.is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
+        # 待ち時間[s]
+        self.matching_seconds = 10
         # 部屋名(固定)
         self.room_name = 'AAA'
 
@@ -137,7 +138,7 @@ class TetrisWindow(QMainWindow, Api):
         while True:
             try:
                 self.connect_server()
-            except socketio.exceptions.ConnectionError:
+            except ConnectionError:
                 from traceback import print_exception; print_exception()
                 sleep(1)
             else:
@@ -244,6 +245,7 @@ class TetrisWindow(QMainWindow, Api):
         
         g = self.game
         state = {
+            'id'        : self.socketid,
             'board'     : g.board.board,
             'cur'       : g.cur,
             'cur_li'    : g.cur_li,
@@ -257,14 +259,15 @@ class TetrisWindow(QMainWindow, Api):
         self.started = False
         self.connect(ENDPOINT)
 
+        print(f'id: {self.socketid}')
+
         if self.is_host:
             self.create_room(self.room_name)
-            self.matching_seconds
-            print(f'matching {self.ma}s ...')
-            sleep(limit)
-            self.game_start(room_name)
+            print(f'matching {self.matching_seconds}s ...')
+            sleep(self.matching_seconds)
+            self.game_start(self.room_name)
         else:
-            self.join_room(room_name)
+            self.join_room(self.room_name)
             print('start waiting ...')
             while not self.started:
                 sleep(1)
@@ -295,6 +298,8 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('updated')
     def sync_status(self, state):
+        if self.socketid == state['id']:
+            return
         if self.debugging:
             # mirroring
             state = json.loads(json.dumps(self.get_state()))
@@ -314,12 +319,12 @@ class TetrisWindow(QMainWindow, Api):
 
     @event('room_created')
     def room_created(self, res):
-        print(f'[info] created {res['room_name']} by {res['id']}')
+        print(f'[info] created {res["room_name"]} by {res["id"]}')
 
 
     @event('room_joined')
     def room_joined(self, res):
-        print(f'[info] joined {res['room_name']} by {res['id']}')
+        print(f'[info] joined {res["room_name"]} by {res["id"]}')
 
 
     @event('game_started')
