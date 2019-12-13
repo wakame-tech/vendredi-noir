@@ -139,7 +139,7 @@ class TetrisWindow(QMainWindow, Api):
             try:
                 self.connect_server()
             except ConnectionError:
-                from traceback import print_exception; print_exception()
+                from traceback import print_exc; print_exc()
                 sleep(1)
             else:
                 break
