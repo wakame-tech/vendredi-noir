@@ -17,7 +17,7 @@ from socketio.exceptions import ConnectionError
 from api_wrapper import Api, event
 sys.path.append('../alg')
 from os.path import abspath
-from Tetris import Game, Board, list2board
+from Tetris import Game, Board, Tetrimino, list2board
 from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame
 )
@@ -35,7 +35,7 @@ ENDPOINT = 'https://vendredi-noir.herokuapp.com'
 
 class MyFrame(QFrame):
 
-    def __init__(self):
+    def __init__(self, board_size: [int]):
 
         super().__init__()
 
@@ -49,8 +49,9 @@ class MyFrame(QFrame):
             0x00ff00,   # s, green
             0xff0000    # t, red
         ]
-        self.board_size = [20, 10]
+        self.board_size = board_size
         self.part_board = Board(self.board_size)
+        self.to = Tetrimino()
 
 
     def paintEvent(self, event):
@@ -95,6 +96,17 @@ class MyFrame(QFrame):
         self.update()
 
 
+    def update_next(self, next_cur: int):
+
+        t4mino = self.to.t4mino_li[next_cur][0]
+        for i in range(self.board_size[0]):
+            for j in range(self.board_size[1]):
+                self.part_board[i, j] = next_cur + 1 if [i, j] in t4mino else 0
+
+
+        self.update()
+
+
 
 class TetrisWindow(QMainWindow, Api):
 
@@ -105,16 +117,6 @@ class TetrisWindow(QMainWindow, Api):
         super(TetrisWindow, self).__init__()
         super(Api, self).__init__()
         g = self.game = Game()
-        self.color_dic = [
-            '#aaa',       # nothing, space
-            'cyan',     # i
-            'yellow',   # o
-            'purple',   # t
-            'blue',     # j
-            'orange',   # l
-            'green',    # s
-            'red'       # t
-        ]
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
         img = self.make_loser_image()
@@ -154,7 +156,7 @@ class TetrisWindow(QMainWindow, Api):
 
     def initUI(self):
         """ UIの初期化 """
-        self.resize(750, 1000)
+        self.resize(750, 750)
         self.setWindowTitle('Tetris')
 
         # 終了ボタン
@@ -173,7 +175,7 @@ class TetrisWindow(QMainWindow, Api):
 
         mainLayout = QHBoxLayout()
         yourVbox = QVBoxLayout()            # youが追加されるLayout
-        sidebox = QVBoxLayout(spacing=50)
+        nextVbox = QVBoxLayout(spacing=50)
         oppoVbox = QVBoxLayout()
 
         # Playerのゲームボード
@@ -181,25 +183,40 @@ class TetrisWindow(QMainWindow, Api):
         yourHbox2 = QHBoxLayout(spacing=1)  # boardが描画されるbox
         yourLabel = QLabel('You')
         yourHbox1.addWidget(yourLabel)
-        self.your_fr = MyFrame()
+        self.your_fr = MyFrame([20, 10])
         yourHbox2.addWidget(self.your_fr)
         yourVbox.addLayout(yourHbox1, 1)
         yourVbox.addLayout(yourHbox2, 5)
+
+        # 次のテトリミノ
+        nextHbox1 = QHBoxLayout(spacing=1)  # Labelが追加されるbox
+        nextHbox2 = QHBoxLayout(spacing=1)  # next tetrimino が描画される
+        nextHbox3 = QHBoxLayout(spacing=1)
+        nextLabel = QLabel('next 1')
+        nextHbox1.addWidget(nextLabel)
+        self.next_fr = MyFrame([4, 4])
+        self.next_fr.update_next(self.game.cur_li[1])
+        spaceLabel = QLabel('copyright')
+        nextHbox3.addWidget(spaceLabel)
+        nextHbox2.addWidget(self.next_fr)
+        nextVbox.addLayout(nextHbox1, 1)
+        nextVbox.addLayout(nextHbox2, 2)
+        nextVbox.addLayout(nextHbox3, 5)
 
         # 対戦相手のゲームボード
         oppoHbox1 = QHBoxLayout(spacing=1)  # Labelが追加されるbox
         oppoHbox2 = QHBoxLayout(spacing=1)  # boardが描画されるbox
         oppoLabel = QLabel('Opponent')
         oppoHbox1.addWidget(oppoLabel)
-        self.oppo_fr = MyFrame()
+        self.oppo_fr = MyFrame([20, 10])
         oppoHbox2.addWidget(self.oppo_fr)
         oppoVbox.addLayout(oppoHbox1, 1)
         oppoVbox.addLayout(oppoHbox2, 5)
 
 
-        mainLayout.addLayout(yourVbox)
-        mainLayout.addLayout(sidebox)
-        mainLayout.addLayout(oppoVbox)
+        mainLayout.addLayout(yourVbox, 2)
+        mainLayout.addLayout(nextVbox, 1)
+        mainLayout.addLayout(oppoVbox, 2)
         container = QWidget()
         container.setLayout(mainLayout)
         self.setCentralWidget(container)
@@ -231,12 +248,14 @@ class TetrisWindow(QMainWindow, Api):
             g.save_board()
             g.update_cur_li()
             g.gen_t4mino()
+            self.next_fr.update_next(g.cur_li[1])
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
             img = self.make_loser_image()
             vd = QMessageBox
             vd.setIconPixmap(QPixmap(img))
+            # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
             vd.information(self, "勝敗", "You Lose...")
             exit() 
 
@@ -272,10 +291,12 @@ class TetrisWindow(QMainWindow, Api):
             while not self.started:
                 sleep(1)
 
+
     def send_board(self):
 
         state = self.get_state()
         self.send_state(state)
+
 
     def make_loser_image(self):
         g = self.game
@@ -290,6 +311,7 @@ class TetrisWindow(QMainWindow, Api):
         # cv_img[:,:,1] = cv_img[:,:,1] * proc
         # cv_img[:,:,2] = cv_img[:,:,2] * proc
         return cv_img
+
 
     @event('connected')
     def connected(self):
