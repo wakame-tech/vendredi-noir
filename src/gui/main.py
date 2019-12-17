@@ -111,7 +111,6 @@ class MyFrame(QFrame):
 class TetrisWindow(QMainWindow, Api):
 
     def __init__(self):
-        app = QApplication(sys.argv)
         self.debugging = False
         print('RUNNING PROGRAMME')
         super(TetrisWindow, self).__init__()
@@ -145,8 +144,6 @@ class TetrisWindow(QMainWindow, Api):
         self.timer.timeout.connect(self.update_status)
         interval = 300 # ms
         self.timer.start(interval)
-
-        app.exec_()
 
 
     def initUI(self):
@@ -252,7 +249,7 @@ class TetrisWindow(QMainWindow, Api):
             vd = QMessageBox()
             # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
             vd.information(self, "勝敗", "You Lose...")
-            self.closer()
+            self.close()
 
 
     def get_state(self) -> {str: object}:
@@ -378,4 +375,7 @@ class TetrisWindow(QMainWindow, Api):
 
 if __name__ == '__main__':
 
-    TetrisWindow()
+    app = QApplication(sys.argv)
+    _ = TetrisWindow()
+    app.exec_()
+
