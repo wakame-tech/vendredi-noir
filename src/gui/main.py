@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame
 )
 from PyQt5.QtGui import (
-    QKeySequence, QPainter, QColor, QPixmap, QImage
+    QIcon, QKeySequence, QPainter, QColor, QPixmap, QImage
 )
 
 from PyQt5.QtCore import(
@@ -119,13 +119,8 @@ class TetrisWindow(QMainWindow, Api):
         g = self.game = Game()
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
-        # self.make_loser_image()
-        # h, w, c = img.shape
-        # bytesPerLine = 3 * w
-        # qimg = QImage(img.data, w, h, bytesPerLine, QImage.Format_RGB888)
-        # vd = QMessageBox()
-        # vd.setIconPixmap(QPixmap(qimg))
-        # vd.information(self, "勝敗", "You Lose...")
+        # 顔画像を人質に取る
+        self.set_loser_image()
 
         # python main.py --join で 部屋に参加する
         self.is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
@@ -230,7 +225,7 @@ class TetrisWindow(QMainWindow, Api):
         if ord('A') <= _key <= ord('Z'):
             key = QKeySequence(_key).toString()
             if key == 'Q':
-                exit()
+                self.close()
 
             g.move(key.lower())
             self.your_fr.update_board(lambda i, j: g.element(i, j))
@@ -252,16 +247,13 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
-            self.make_loser_image()
+            loser_img = self.get_loser_image()
+            cv2.imwrite('LOSER.PNG', loser_img)
             vd = QMessageBox()
-            vd.setIconPixmap(QPixmap('寒水研.png'))
             # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
             # vd.information(self, "勝敗", "You Lose...")
-            self.make_loser_image()
-            vd = QMessageBox()
-            vd.setIconPixmap(QPixmap("Loser.png"))
             vd.information(self, "勝敗", "You Lose...")
-            exit() 
+            self.closer()
 
 
     def get_state(self) -> {str: object}:
@@ -302,30 +294,37 @@ class TetrisWindow(QMainWindow, Api):
         self.send_state(state)
 
 
-    def make_loser_image(self) -> None or object:
+    def get_loser_image(self) -> np.ndarray:
+
         g = self.game
-        capture = cv2.VideoCapture(0)
-        ret, cv_img = capture.read()
-        if ret is False:
-            return
-        # cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        a = np.array(g.board.board)
-        proc = a / 7
-        div = [0, 0]
-        div[0] = cv_img.shape[0] // proc.shape[0]
-        div[1] = cv_img.shape[1] // proc.shape[1]
-        x = -1
-        y = -1
-        for i in range(cv_img.shape[1]):
-            if(i%div[1]==0):
-                y = y + 1
-            for j in range(cv_img.shape[0]):
-                if(j%div[0] == 0):
-                    x = x + 1
-                cv_img[j,i,:] = cv_img[j,i,:] * proc[x,y]
-            x = -1
-        
-        cv2.imwrite("Loser.png", cv_img)
+        frame = self.loser_img
+        loser_size_tup = (320, 640)
+
+        board_np = np.array(g.board.board)
+        repeater = loser_size_tup[1] // board_np.shape[0]
+        filt = board_np.repeat(repeater, axis=0).repeat(repeater, axis=1)
+        filt[filt >= 1] = 1
+        loser_img = np.zeros_like(frame)
+        for ix in range(3):
+            loser_img[..., ix] = frame[..., ix] * filt
+
+        return loser_img
+
+
+    def set_loser_image(self):
+
+        loser_size_tup = (320, 640)
+
+        cap = cv2.VideoCapture(0)
+        sleep(2)    # 2 秒待ってからインカメ、本当は顔認証とか使えばもっと楽しくなる
+        frame = cap.read()[1]
+        height = frame.shape[0]
+        width = height // 2
+        frame = frame[:, frame.shape[1]//2-width//2:frame.shape[1]//2+width//2]
+        self.loser_img = cv2.resize(frame, loser_size_tup)
+
+        cap.release()
+        del cap
 
 
     @event('connected')
