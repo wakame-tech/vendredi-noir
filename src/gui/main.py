@@ -316,15 +316,15 @@ class TetrisWindow(QMainWindow, Api):
         detector = ObjDetector('haarcascade_frontalface_default.xml')
         while True:
             frame = cap.read()[1]
+            height = frame.shape[0]
+            width = height // 2
+            frame = frame[:, frame.shape[1]//2-width//2:frame.shape[1]//2+width//2]
             if detector.detect(frame):
                 print('あなたの顔を人質に取ったよ！　ばら撒かれたくなかったら、TETRISで勝ってね！')
                 break
             sleep(0.2)
             print('おいちょっと面貸せや〜')
 
-        height = frame.shape[0]
-        width = height // 2
-        frame = frame[:, frame.shape[1]//2-width//2:frame.shape[1]//2+width//2]
         self.loser_img = cv2.resize(frame, loser_size_tup)
 
         cap.release()
