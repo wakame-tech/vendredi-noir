@@ -119,7 +119,7 @@ class TetrisWindow(QMainWindow, Api):
         g = self.game = Game()
         self.size_li_rg = [range(size) for size in g.board_size]
         self.initUI()
-        # img = self.make_loser_image()
+        # self.make_loser_image()
         # h, w, c = img.shape
         # bytesPerLine = 3 * w
         # qimg = QImage(img.data, w, h, bytesPerLine, QImage.Format_RGB888)
@@ -252,7 +252,7 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
-            img = self.make_loser_image()
+            self.make_loser_image()
             vd = QMessageBox()
             vd.setIconPixmap(QPixmap('寒水研.png'))
             # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
@@ -308,26 +308,23 @@ class TetrisWindow(QMainWindow, Api):
         ret, cv_img = capture.read()
         if ret is False:
             return
-        cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        # cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
         a = np.array(g.board.board)
         proc = a / 7
-        # cv_img[:,:,0] = cv_img[:,:,0] * proc
-        # cv_img[:,:,1] = cv_img[:,:,1] * proc
-        # cv_img[:,:,2] = cv_img[:,:,2] * proc
         div = [0, 0]
         div[0] = cv_img.shape[0] // proc.shape[0]
         div[1] = cv_img.shape[1] // proc.shape[1]
-        x = 0
-        y = 0
-        for i in range(cv_img.shape[0]):
-            for j in range(cv_img.shape[1]):
-                if(x>=20 or y>=10):
-                    break
-                cv_img[i,j,:] = cv_img[i,j,:] * proc[x,y]
-                if(j%div[1] == (div[1]-1)):
+        x = -1
+        y = -1
+        for i in range(cv_img.shape[1]):
+            if(i%div[1]==0):
+                y = y + 1
+            for j in range(cv_img.shape[0]):
+                if(j%div[0] == 0):
                     x = x + 1
-            if(i%div[0]==(div[0]-1)):
-                    y = y + 1
+                cv_img[j,i,:] = cv_img[j,i,:] * proc[x,y]
+            x = -1
+        
         cv2.imwrite("Loser.png", cv_img)
 
 
