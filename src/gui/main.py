@@ -252,9 +252,15 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
+<<<<<<< HEAD
             # img = self.make_loser_image()
             # vd = QMessageBox
             # vd.setIconPixmap(QPixmap(img))
+=======
+            img = self.make_loser_image()
+            vd = QMessageBox()
+            vd.setIconPixmap(QPixmap('寒水研.png'))
+>>>>>>> 0746d540094b604a3b5df33102669b63017c4fea
             # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
             # vd.information(self, "勝敗", "You Lose...")
             self.make_loser_image()
@@ -302,6 +308,7 @@ class TetrisWindow(QMainWindow, Api):
         self.send_state(state)
 
 
+<<<<<<< HEAD
     def make_loser_image(self):
         # g = self.game
         # capture = cv2.VideoCapture(0)
@@ -315,6 +322,9 @@ class TetrisWindow(QMainWindow, Api):
         # cv_img[:,:,1] = cv_img[:,:,1] * proc
         # cv_img[:,:,2] = cv_img[:,:,2] * proc
         # return cv_img
+=======
+    def make_loser_image(self) -> None or object:
+>>>>>>> 0746d540094b604a3b5df33102669b63017c4fea
         g = self.game
         capture = cv2.VideoCapture(0)
         ret, cv_img = capture.read()
@@ -349,7 +359,7 @@ class TetrisWindow(QMainWindow, Api):
 
 
     @event('updated')
-    def sync_status(self, state):
+    def sync_status(self, state) -> None:
         if self.socketid == state['id']:
             return
         if self.debugging:

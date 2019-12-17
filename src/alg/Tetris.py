@@ -253,6 +253,10 @@ class Game(object):
         # rotate left
         elif to == 'a':
             q_li = [pt[0]  , pt[1]  ,(self.rot-1)%4]
+        # fall
+        elif to == 'd':
+            while self.move(): pass
+            return True
         # down
         else:
             q_li = [pt[0]+1, pt[1]  , self.rot]
