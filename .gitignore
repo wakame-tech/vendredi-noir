@@ -4,3 +4,4 @@ __pycache__
 
 src/test-*
 src/gesture/chromedriver
+src/gui/LOSER.PNG
