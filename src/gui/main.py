@@ -328,7 +328,6 @@ class TetrisWindow(QMainWindow, Api):
         self.loser_img = cv2.resize(frame, loser_size_tup)
 
         cap.release()
-        del cap
 
 
     @event('connected')
