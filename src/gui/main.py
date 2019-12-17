@@ -252,14 +252,16 @@ class TetrisWindow(QMainWindow, Api):
 
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
-            self.make_loser_image()
-            vd = QMessageBox()
-            vd.setIconPixmap(QPixmap('寒水研.png'))
+            # self.make_loser_image()
+            # vd = QMessageBox()
+            # vd.setIconPixmap(QPixmap('寒水研.png'))
             # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
             # vd.information(self, "勝敗", "You Lose...")
             self.make_loser_image()
             vd = QMessageBox()
-            vd.setIconPixmap(QPixmap("Loser.png"))
+            icon = QPixmap()
+            icon.load("Loser.png")
+            vd.setIconPixmap(icon)
             vd.information(self, "勝敗", "You Lose...")
             exit() 
 
