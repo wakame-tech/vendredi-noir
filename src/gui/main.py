@@ -10,6 +10,7 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 
 import sys
 from time import sleep
+from haar import ObjDetector
 import json
 import cv2
 import numpy as np
@@ -312,8 +313,15 @@ class TetrisWindow(QMainWindow, Api):
         loser_size_tup = (320, 640)
 
         cap = cv2.VideoCapture(0)
-        sleep(2)    # 2 秒待ってからインカメ、本当は顔認証とか使えばもっと楽しくなる
-        frame = cap.read()[1]
+        detector = ObjDetector('haarcascade_frontalface_default.xml')
+        while True:
+            frame = cap.read()[1]
+            if detector.detect(frame):
+                print('あなたの顔を人質に取ったよ！　ばら撒かれたくなかったら、TETRISで勝ってね！')
+                break
+            sleep(0.2)
+            print('おいちょっと面貸せや〜')
+
         height = frame.shape[0]
         width = height // 2
         frame = frame[:, frame.shape[1]//2-width//2:frame.shape[1]//2+width//2]
