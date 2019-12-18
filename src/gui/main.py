@@ -8,6 +8,10 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 @id: 4617054
 """
 
+from platform import python_version
+py_vers = python_version()
+if py_vers[:3] != '3.7': raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
+
 from error import VendrediNoirError
 import sys
 import threading
@@ -19,7 +23,9 @@ import numpy as np
 from socketio.exceptions import ConnectionError
 from api_wrapper import Api, event
 from os.path import abspath
-sys.path.append('../alg'); from Tetris import Game, Board, Tetrimino, list2board
+sys.path.append('../alg'); from Tetris import Game, Board, Tetrimino, list2board; sys.path.pop(-1)
+sys.path.append('../gesture'); from core import Gesture; sys.path.pop(-1)
+
 from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame, QDialog
 )
@@ -158,14 +164,6 @@ class TetrisWindow(QMainWindow, Api):
 
         # ジェスチャーを起動する
         if is_gesture:
-
-            from platform import python_version
-            py_vers = python_version()
-            if py_vers[:3] != '3.7':
-                raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
-
-            sys.path.append('../gesture')
-            from core import Gesture
 
             self.thr_gest = threading.Thread(target=self.gesture)
             self.thr_gest.start()
@@ -436,7 +434,7 @@ class TetrisWindow(QMainWindow, Api):
     def __del__(self):
 
         if self.is_gesture:
-            thr_gest.join()
+            self.thr_gest.join()
 
 
 
