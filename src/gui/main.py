@@ -8,7 +8,12 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 @id: 4617054
 """
 
+from error import VendrediNoirError
+from platform import python_version
+py_vers = python_version()
+if py_vers[:3] != '3.7': raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
 import sys
+import threading
 from time import sleep
 from haar import ObjDetector
 import json
@@ -16,9 +21,9 @@ import cv2
 import numpy as np
 from socketio.exceptions import ConnectionError
 from api_wrapper import Api, event
-sys.path.append('../alg')
 from os.path import abspath
-from Tetris import Game, Board, Tetrimino, list2board
+sys.path.append('../alg'); from Tetris import Game, Board, Tetrimino, list2board
+sys.path.append('../gesture'); from core import Gesture
 from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame
 )
@@ -29,6 +34,7 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import(
     QTimer
 )
+
 
 ENDPOINT = 'https://vendredi-noir.herokuapp.com'
 # ENDPOINT = 'http://localhost:5000'
@@ -111,7 +117,9 @@ class MyFrame(QFrame):
 
 class TetrisWindow(QMainWindow, Api):
 
-    def __init__(self):
+    def __init__(self, is_gesture: bool=False):
+
+        self.is_gesture = is_gesture
         self.debugging = False
         print('RUNNING PROGRAMME')
         super(TetrisWindow, self).__init__()
@@ -121,6 +129,11 @@ class TetrisWindow(QMainWindow, Api):
         self.initUI()
         # 顔画像を人質に取る
         self.set_loser_image()
+
+        # ジェスチャーを起動する
+        if is_gesture:
+            self.thr_gest = threading.Thread(target=self.gesture)
+            self.thr_gest.start()
 
         # python main.py --join で 部屋に参加する
         self.is_host = not (len(sys.argv) >= 2 and sys.argv[1] == '--join')
@@ -145,6 +158,13 @@ class TetrisWindow(QMainWindow, Api):
         self.timer.timeout.connect(self.update_status)
         interval = 300 # ms
         self.timer.start(interval)
+
+
+    # ジェスチャーモード組込
+    def gesture(self):
+
+        gest = Gesture()
+        gest.main()
 
 
     def initUI(self):
@@ -379,10 +399,16 @@ class TetrisWindow(QMainWindow, Api):
         sys.exit()
 
 
+    def __del__(self):
+
+        if self.is_gesture:
+            thr_gest.join()
+
+
 
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    _ = TetrisWindow()
+    _ = TetrisWindow(is_gesture=True)
     app.exec_()
 
