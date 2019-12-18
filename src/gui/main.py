@@ -187,7 +187,7 @@ class TetrisWindow(QMainWindow, Api):
             else:
                 break
 
-        self.timer = QTimelr(self)
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_status)
         interval = 500 # ms
         self.timer.start(interval)
