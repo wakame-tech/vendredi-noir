@@ -114,8 +114,10 @@ class Gesture(object):
     def main(self, display_mode: bool=False) -> None:
 
         _x = _y = 0
-        eps      = 1
+        eps      = 8
         eps_down = 5
+        down_thres = 300
+
         while cv2.waitKey(10) != ord('q'):
 
             frame = self.cap.read()[1]
@@ -129,14 +131,16 @@ class Gesture(object):
                 # category 2 is Closed hand
                 if category == 2:
                     text = 'f'
-                elif abs(x-_x) < eps and abs(y-_y) < eps_down:
-                    text = ''
-                elif abs(x-_x) < abs(y-_y):
-                    text = 'k'
-                elif x > _x: # abs(x-_x) >= abs(y-_y)
+                # elif abs(x-_x) < eps and abs(y-_y) < eps_down:
+                #     text = ''
+                elif x - _x > eps:
                     text = 'l'
-                else: # x < _x
+                elif _x - x > eps:
                     text = 'h'
+                elif y > down_thres:
+                    text = 'k'
+                else:
+                    text = ''
 
                 _x, _y = x, y
 
