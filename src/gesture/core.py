@@ -13,15 +13,13 @@ import pyautogui
 import numpy as np
 
 
-GREEN  = (0x00, 0xff, 0x00)
-RED    = (0x00, 0x00, 0xff)
-YELLOW = (0x00, 0xff, 0xff)
-
 
 class Gesture(object):
 
 
-    def __init__(self):
+    def __init__(self, builtin: bool=True):
+
+        self.builtin = builtin
 
         tf.flags.DEFINE_integer('width', 640, 'Screen width')
         tf.flags.DEFINE_integer('height', 480, 'Screen height')
@@ -29,7 +27,7 @@ class Gesture(object):
         tf.flags.DEFINE_float  ('alpha', 0.3, 'Transparent level')
         self.FLAGS = tf.flags.FLAGS
 
-        model_path = 'model.pb'
+        model_path = '../gesture/model.pb'
         self.load_graph(model_path)
         self.capture()
 
@@ -95,6 +93,10 @@ class Gesture(object):
 
     def display(self, frame: np.ndarray, x: int, y: int, text: str) -> None:
 
+        GREEN  = (0x00, 0xff, 0x00)
+        RED    = (0x00, 0x00, 0xff)
+        YELLOW = (0x00, 0xff, 0xff)
+
         FLAGS = self.FLAGS
 
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -151,13 +153,14 @@ class Gesture(object):
 
     def __del__(self):
 
-        self.cap.release()
-        cv2.destroyAllWindows()
+        if not self.builtin:
+            self.cap.release()
+            cv2.destroyAllWindows()
 
 
 
 if __name__ == '__main__':
 
-    g = Gesture()
+    g = Gesture(builtin=False)
     g.main()
 
