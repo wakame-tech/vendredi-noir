@@ -443,6 +443,6 @@ class TetrisWindow(QMainWindow, Api):
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    _ = TetrisWindow(is_gesture=False)
+    _ = TetrisWindow(is_gesture=True)
     app.exec_()
 
