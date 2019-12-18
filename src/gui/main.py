@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import(
     QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame, QDialog
 )
 from PyQt5.QtGui import (
-    QIcon, QKeySequence, QPainter, QColor, QPixmap, QImage
+    QKeySequence, QPainter, QColor, QPixmap, QImage
 )
 
 from PyQt5.QtCore import(
@@ -113,7 +113,7 @@ class MyFrame(QFrame):
 
 class SubWindow(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, loser_img: np.ndarray):
 
         self.parent = parent
         self.w = QDialog(parent)
@@ -123,8 +123,9 @@ class SubWindow(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(label)
 
-        fname = 'Loser.png'
-        image = QImage(fname)
+        loser_img_cv2 = cv2.cvtColor(loser_img, cv2.COLOR_BGR2RGB)
+        h, w = loser_img_cv2.shape[:2]
+        image = QImage(loser_img_cv2.flatten(), w, h, QImage.Format_RGB888)
         imageLabel = QLabel()
         imageLabel.setPixmap(QPixmap.fromImage(image))
         layout.addWidget(imageLabel)
@@ -132,9 +133,11 @@ class SubWindow(QWidget):
         self.w.setLayout(layout)
 
 
-    def show(self):
+    def show(self) -> bool:
 
         self.w.exec_()
+
+        return True
 
 
 
@@ -297,15 +300,11 @@ class TetrisWindow(QMainWindow, Api):
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
             loser_img = self.get_loser_image()
-            fname = 'Loser.png'
-            cv2.imwrite(fname, loser_img)
 
             # サブウィンドウの表示
-            subWindow = SubWindow(self)
-            subWindow.show()
-
-            # ちゃんと閉じない
-            self.close()
+            subWindow = SubWindow(self, loser_img)
+            if subWindow.show():
+                self.close()
 
 
     def get_state(self) -> {str: object}:
