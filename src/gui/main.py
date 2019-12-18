@@ -9,9 +9,6 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 """
 
 from error import VendrediNoirError
-from platform import python_version
-py_vers = python_version()
-if py_vers[:3] != '3.7': raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
 import sys
 import threading
 from time import sleep
@@ -23,9 +20,8 @@ from socketio.exceptions import ConnectionError
 from api_wrapper import Api, event
 from os.path import abspath
 sys.path.append('../alg'); from Tetris import Game, Board, Tetrimino, list2board
-sys.path.append('../gesture'); from core import Gesture
 from PyQt5.QtWidgets import(
-    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame
+    QLabel, QMainWindow, QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QAction, QFrame, QDialog
 )
 from PyQt5.QtGui import (
     QIcon, QKeySequence, QPainter, QColor, QPixmap, QImage
@@ -115,6 +111,33 @@ class MyFrame(QFrame):
 
 
 
+class SubWindow(QWidget):
+
+    def __init__(self, parent):
+
+        self.parent = parent
+        self.w = QDialog(parent)
+
+        label = QLabel()
+        label.setText('You Lose...')
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+
+        fname = 'Loser.png'
+        image = QImage(fname)
+        imageLabel = QLabel()
+        imageLabel.setPixmap(QPixmap.fromImage(image))
+        layout.addWidget(imageLabel)
+
+        self.w.setLayout(layout)
+
+
+    def show(self):
+
+        self.w.exec_()
+
+
+
 class TetrisWindow(QMainWindow, Api):
 
     def __init__(self, is_gesture: bool=False):
@@ -132,6 +155,15 @@ class TetrisWindow(QMainWindow, Api):
 
         # ジェスチャーを起動する
         if is_gesture:
+
+            from platform import python_version
+            py_vers = python_version()
+            if py_vers[:3] != '3.7':
+                raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
+
+            sys.path.append('../gesture')
+            from core import Gesture
+
             self.thr_gest = threading.Thread(target=self.gesture)
             self.thr_gest.start()
 
@@ -226,7 +258,6 @@ class TetrisWindow(QMainWindow, Api):
         oppoVbox.addLayout(oppoHbox1, 1)
         oppoVbox.addLayout(oppoHbox2, 5)
 
-
         mainLayout.addLayout(yourVbox, 2)
         mainLayout.addLayout(nextVbox, 1)
         mainLayout.addLayout(oppoVbox, 2)
@@ -266,10 +297,14 @@ class TetrisWindow(QMainWindow, Api):
         g._pt, g._rot = g.pt.copy(), g.rot
         if not g.yet():
             loser_img = self.get_loser_image()
-            cv2.imwrite('LOSER.PNG', loser_img)
-            vd = QMessageBox()
-            # TODO: この部分でnumpyのエラーが起きているので、多分QPixmapはnumpyを引き受けないんだと思う、知らんけど
-            vd.information(self, "勝敗", "You Lose...")
+            fname = 'Loser.png'
+            cv2.imwrite(fname, loser_img)
+
+            # サブウィンドウの表示
+            subWindow = SubWindow(self)
+            subWindow.show()
+
+            # ちゃんと閉じない
             self.close()
 
 
@@ -409,6 +444,6 @@ class TetrisWindow(QMainWindow, Api):
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    _ = TetrisWindow(is_gesture=True)
+    _ = TetrisWindow(is_gesture=False)
     app.exec_()
 
