@@ -10,9 +10,8 @@ URL: https://github.com/wakame-tech/vendredi-noir/blob/master/src/gui/main.py
 
 from platform import python_version
 py_vers = python_version()
-if py_vers[:3] != '3.7': raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
-
 from error import VendrediNoirError
+if py_vers[:3] != '3.7': raise VendrediNoirError(f'this program demands python version "3.7.x" <py_vers={py_vers}>')
 import sys
 import threading
 from time import sleep
