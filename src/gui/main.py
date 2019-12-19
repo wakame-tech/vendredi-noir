@@ -359,7 +359,7 @@ class TetrisWindow(QMainWindow, Api):
         return loser_img
 
 
-    def set_loser_image(self):
+    def set_loser_image(self, skip=False):
 
         loser_size_tup = (320, 640)
 
@@ -370,6 +370,8 @@ class TetrisWindow(QMainWindow, Api):
             height = frame.shape[0]
             width = height // 2
             frame = frame[:, frame.shape[1]//2-width//2:frame.shape[1]//2+width//2]
+            if skip:
+                break
             if detector.detect(frame):
                 print('あなたの顔を人質に取ったよ！　ばら撒かれたくなかったら、TETRISで勝ってね！')
                 break
