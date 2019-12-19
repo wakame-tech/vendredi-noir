@@ -148,7 +148,8 @@ class Gesture(object):
                 x, y = _x, _y
                 text = ''
 
-            pyautogui.press(text)
+            if text != '':
+                pyautogui.press(text)
             if display_mode:
                 self.display(frame, x, y, text)
 
