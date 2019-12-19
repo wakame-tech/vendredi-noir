@@ -140,16 +140,15 @@ class Gesture(object):
                 elif y > down_thres:
                     text = 'k'
                 else:
-                    text = ''
+                    continue
 
                 _x, _y = x, y
 
             else:
                 x, y = _x, _y
-                text = ''
+                continue
 
-            if text != '':
-                pyautogui.press(text)
+            pyautogui.press(text)
             if display_mode:
                 self.display(frame, x, y, text)
 
