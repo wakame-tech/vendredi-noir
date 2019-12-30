@@ -1,54 +1,28 @@
 # Vendredi-Noir
 Gesture Interface + Multiplay Tetris
 
+## Get Started
 ```bash
 git clone https://github.com/wakame-tech/vendredi-noir.git
+pip install -r requirements.txt
+cd src/gui
+python main.py
 ```
 
-## Gesture UI
+> [Note] if occuring server time-out error, check [here](https://vendredi-noir.herokuapp.com) for server activating.
 
-## TetrisClient
-`W:10 x H:20`
-
-[さんこう](http://zetcode.com/gui/pyqt5/tetris/)
-
-![block](https://livedoor.blogimg.jp/mkomiz/imgs/f/f/ff82b30d.gif)
-
-## TetrisServer
-### skill stacks
-- Python 3.7.5
+### Skill Stacks
+- Python 3.7.3+
+- Tensorflow
+- Pyautogui
 - Flask
 - Flask-SocketIO
+- PyQt5
+- Heroku
 
-### API schema
-schema from server
-
-```json
-{
-  "score": "120",
-  "falling": {
-    "type": "O",
-    "pos": [3, 5]
-  },
-  "next": "J",
-  "board": [
-    [0, 0, 0, ...],
-    [0, 0, 0, ...],
-    ...
-    [0, 1, 2, ...],
-  ],
-  "isDead": false
-}
-```
-
-### deploy to heroku
+### [Memo] Deploy server to Heroku
 ```
 git subtree push --prefix src/server/ heroku master
 ```
 
-deployed at [here](https://vendredi-noir.herokuapp.com) 🎉🎉🎉
-
-
-### ref
-- <https://devcenter.heroku.com/articles/python-websockets>
-- <https://github.com/miguelgrinberg/Flask-SocketIO/blob/master/example/app.py>
+server deployed at [here](https://vendredi-noir.herokuapp.com) 🎉🎉🎉
