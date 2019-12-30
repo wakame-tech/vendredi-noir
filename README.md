@@ -4,6 +4,7 @@ Gesture Interface + Multiplay Tetris
 ## Get Started
 ```bash
 git clone https://github.com/wakame-tech/vendredi-noir.git
+cd vendredi-noir
 pip install -r requirements.txt
 cd src/gui
 python main.py
